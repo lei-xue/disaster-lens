@@ -19,6 +19,7 @@ import EmptyState from '../components/EmptyState.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
 import KpiCard from '../components/KpiCard.tsx'
 import { DashboardSkeleton } from '../components/Skeleton.tsx'
+import StateChoropleth from '../components/StateChoropleth.tsx'
 import {
   busiestYear,
   countByState,
@@ -37,6 +38,7 @@ import {
 import {
   fetchDisasters,
   FemaError,
+  MAX_RECORDS,
   setCachedDisasters,
   type DisasterQuery,
 } from '../lib/fema.ts'
@@ -156,7 +158,8 @@ export default function DashboardPage() {
 
   const years = yearOptions()
   const hasData = status !== 'error' && records !== null && records.length > 0
-  const stateData = hasData ? countByState(records).slice(0, 15) : []
+  const allStateCounts = hasData ? countByState(records) : []
+  const stateData = allStateCounts.slice(0, 15)
   const yearData = hasData ? countByYear(records) : []
   const pieData = hasData ? pieDataFor(records) : []
   const stateName = stateCode === '' ? 'All states' : stateLabel(stateCode)
@@ -337,6 +340,13 @@ export default function DashboardPage() {
           </div>
 
           <ChartCard
+            title="Declarations map"
+            subtitle="Count per state in the current view; hover a state for details"
+          >
+            <StateChoropleth counts={allStateCounts} selectedState={stateCode} />
+          </ChartCard>
+
+          <ChartCard
             title="Declarations by state"
             subtitle="Top 15 states and territories in the current view"
           >
@@ -418,6 +428,12 @@ export default function DashboardPage() {
           <p className="text-sm text-slate-600">
             Showing {formatNumber(records.length)} declaration records for{' '}
             {stateName} between {startYear} and {endYear}.{' '}
+            {records.length >= MAX_RECORDS && (
+              <span className="font-medium text-amber-700">
+                This view is capped at the most recent {formatNumber(MAX_RECORDS)} records —
+                narrow the filters for complete coverage.{' '}
+              </span>
+            )}
             <Link
               to="/disasters"
               className="font-semibold text-blue-700 hover:underline"

@@ -6,8 +6,9 @@ recharts. No backend, no API key, no analytics.
 
 ## Pages
 
-- `/#/` — Dashboard: year range, state, and incident-type filters; KPI cards;
-  declarations by state (top 15), per year, and share by incident type.
+- `/#/` — Dashboard: year range, state, and incident-type filters; KPI cards; a US
+  state choropleth; declarations by state (top 15), per year, and share by
+  incident type.
 - `/#/disasters` — searchable, sortable table of loaded declarations (25/page)
   with a detail view at `/#/disaster/:disasterNumber`.
 - `/#/preparedness` — static before/during/after preparedness guidance.
