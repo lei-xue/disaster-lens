@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import EmptyState from '../components/EmptyState.tsx'
+import DataScope from '../components/DataScope.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
 import { TableSkeleton } from '../components/Skeleton.tsx'
 import { CURRENT_YEAR, DATA_START_YEAR } from '../lib/constants.ts'
@@ -59,7 +60,7 @@ export default function ExplorePage() {
       setCacheEntry(getCachedDisasters())
       setStatus('idle')
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') return
+      if (controller.signal.aborted || (err instanceof Error && err.name === 'AbortError')) return
       setErrorMessage(
         err instanceof FemaError
           ? err.message
@@ -136,6 +137,7 @@ export default function ExplorePage() {
 
       {records !== null ? (
         <div className="space-y-4">
+          {cacheEntry ? <DataScope entry={cacheEntry} /> : null}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <label htmlFor="table-search" className="sr-only">
               Search declarations

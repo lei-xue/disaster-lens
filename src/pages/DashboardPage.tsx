@@ -15,6 +15,7 @@ import {
   YAxis,
 } from 'recharts'
 import ChartCard from '../components/ChartCard.tsx'
+import DataScope from '../components/DataScope.tsx'
 import EmptyState from '../components/EmptyState.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
 import KpiCard from '../components/KpiCard.tsx'
@@ -38,8 +39,9 @@ import {
 import {
   fetchDisasters,
   FemaError,
-  MAX_RECORDS,
+  sameQuery,
   setCachedDisasters,
+  type CacheEntry,
   type DisasterQuery,
 } from '../lib/fema.ts'
 import { formatNumber, formatShare } from '../lib/format.ts'
@@ -80,7 +82,8 @@ export default function DashboardPage() {
   const [endYear, setEndYear] = useState(CURRENT_YEAR)
   const [stateCode, setStateCode] = useState('')
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
-  const [records, setRecords] = useState<DisasterRecord[] | null>(null)
+  const [entry, setEntry] = useState<CacheEntry | null>(null)
+  const records = entry?.records ?? null
   const [status, setStatus] = useState<Status>('loading')
   const [errorMessage, setErrorMessage] = useState('')
   const controllerRef = useRef<AbortController | null>(null)
@@ -93,10 +96,10 @@ export default function DashboardPage() {
       const result = await fetchDisasters(query, controller.signal)
       if (controller.signal.aborted) return
       setCachedDisasters(query, result)
-      setRecords(result)
+      setEntry({ ...result, query: { ...query, incidentTypes: [...query.incidentTypes] }, fetchedAt: Date.now() })
       setStatus('success')
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') return
+      if (controller.signal.aborted || (err instanceof Error && err.name === 'AbortError')) return
       setErrorMessage(
         err instanceof FemaError
           ? err.message
@@ -162,7 +165,11 @@ export default function DashboardPage() {
   const stateData = allStateCounts.slice(0, 15)
   const yearData = hasData ? countByYear(records) : []
   const pieData = hasData ? pieDataFor(records) : []
-  const stateName = stateCode === '' ? 'All states' : stateLabel(stateCode)
+  const appliedState = entry?.query.state || ''
+  const stateName = appliedState === '' ? 'All states' : stateLabel(appliedState)
+  const hasDraftChanges = entry !== null && !sameQuery(entry.query, {
+    startYear, endYear, state: stateCode || null, incidentTypes: selectedTypes,
+  })
 
   return (
     <div className="space-y-6">
@@ -287,6 +294,8 @@ export default function DashboardPage() {
         </fieldset>
       </section>
 
+      {hasDraftChanges ? <p className="text-sm text-slate-600">Filters have changed. Apply them to update the loaded view.</p> : null}
+
       {status === 'error' ? (
         <ErrorBanner message={errorMessage} onRetry={applyFilters} />
       ) : null}
@@ -316,6 +325,7 @@ export default function DashboardPage() {
 
       {hasData ? (
         <div className="space-y-6">
+          {entry ? <DataScope entry={entry} /> : null}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
               label="Declaration records"
@@ -335,19 +345,19 @@ export default function DashboardPage() {
             <KpiCard
               label="Busiest year"
               value={busiestYear(records)?.toString() ?? '—'}
-              hint="Year with the most declarations"
+              hint="Year with the most loaded records"
             />
           </div>
 
           <ChartCard
-            title="Declarations map"
+            title="Declaration records map"
             subtitle="Count per state in the current view; hover a state for details"
           >
-            <StateChoropleth counts={allStateCounts} selectedState={stateCode} />
+            <StateChoropleth counts={allStateCounts} selectedState={appliedState} />
           </ChartCard>
 
           <ChartCard
-            title="Declarations by state"
+            title="Declaration records by state"
             subtitle="Top 15 states and territories in the current view"
           >
             <div className="h-80">
@@ -364,7 +374,7 @@ export default function DashboardPage() {
           </ChartCard>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <ChartCard title="Declarations per year">
+            <ChartCard title="Declaration records per year">
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={yearData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -427,18 +437,12 @@ export default function DashboardPage() {
 
           <p className="text-sm text-slate-600">
             Showing {formatNumber(records.length)} declaration records for{' '}
-            {stateName} between {startYear} and {endYear}.{' '}
-            {records.length >= MAX_RECORDS && (
-              <span className="font-medium text-amber-700">
-                This view is capped at the most recent {formatNumber(MAX_RECORDS)} records —
-                narrow the filters for complete coverage.{' '}
-              </span>
-            )}
+            {stateName} between {entry?.query.startYear} and {entry?.query.endYear}.{' '}
             <Link
               to="/disasters"
               className="font-semibold text-blue-700 hover:underline"
             >
-              Browse the full table →
+              Browse loaded records →
             </Link>
           </p>
         </div>

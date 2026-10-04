@@ -44,7 +44,7 @@ export default function AboutPage() {
           </a>{' '}
           Disaster Declarations Summaries dataset (API v2), fetched directly
           from{' '}
-          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
+          <code className="break-all rounded bg-slate-100 px-1.5 py-0.5 text-sm">
             www.fema.gov/api/open/v2/DisasterDeclarationsSummaries
           </code>{' '}
           in your browser — no server in between, no API key, and nothing is
@@ -54,6 +54,11 @@ export default function AboutPage() {
           county), so a single disaster covering several counties appears
           several times, and counts here are record counts, not unique
           disasters.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          Each query loads at most 5,000 records. At that limit, charts, search and area lists may be incomplete.
+          Details query the selected disaster independently, including older declarations.
+          Data is fetched on page load or an applied query, not continuously monitored; freshness depends on FEMA updates.
         </p>
       </section>
 

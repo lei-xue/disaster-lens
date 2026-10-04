@@ -1,37 +1,40 @@
 # DisasterLens
 
-A FEMA disaster data dashboard MVP — a static React + TypeScript SPA that fetches
-disaster declarations live from the OpenFEMA v2 API and visualizes them with
-recharts. No backend, no API key, no analytics.
+An English, static React + TypeScript dashboard that fetches disaster declarations online from OpenFEMA v2. No business backend, API key or application analytics. **Online data retrieval is not real-time hazard monitoring**: the app does not poll or push alerts, and freshness depends on FEMA publishing updates.
 
 ## Pages
 
-- `/#/` — Dashboard: year range, state, and incident-type filters; KPI cards; a US
-  state choropleth; declarations by state (top 15), per year, and share by
-  incident type.
-- `/#/disasters` — searchable, sortable table of loaded declarations (25/page)
-  with a detail view at `/#/disaster/:disasterNumber`.
-- `/#/preparedness` — static before/during/after preparedness guidance.
-- `/#/about` — data source, declaration types (DR/EM/FM), disclaimer.
+- `/#/` — year/state/type filters, loaded-record KPIs, state map and charts.
+- `/#/disasters` — search, sort and paginate loaded records (25 per page).
+- `/#/disaster/:disasterNumber` — independently paginated detail query; direct visits and refresh work without a dashboard cache.
+- `/#/preparedness` — emergency preparation guidance.
+- `/#/about` — source, count definitions, limitations and disclaimer.
 
 ## Commands
 
+Use a Node version supporting native TypeScript type stripping (verified with Node 26).
+
 ```sh
-npm install
-npm run dev      # local dev server
-npm run build    # tsc -b && vite build
-npm run lint     # oxlint
-npm test         # node --test
-npm run preview  # serve the production build
+npm ci
+npm run dev
+npm test
+npm run lint
+npm run build
+npm run preview
 ```
 
-## Data
+Browser regression scenarios are documented in [acceptance](docs/acceptance.md). They distinguish synthetic edge-case fixtures from actual API checks.
 
-Fetched client-side from
-`https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries` (CORS open).
-Requests page in batches of 1000 and caps at 5000 records; the last successful
-result is cached in memory only. Deploy constraints: relative asset paths
-(`base: './'`) and a HashRouter — the host has no SPA fallback.
+## Data and completeness
 
-DisasterLens is informational only — in an emergency, follow your local
-officials.
+Queries fetch client-side from `https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries`, in 1,000-row batches up to a 5,000-record safety bound. A short final page establishes completion for that request; reaching the bound displays **may be incomplete**, even when exactly 5,000 records exist. It does not claim a known full total. A later-page failure rejects the request instead of presenting partial records as complete. Invalid records are reported, not silently dropped.
+
+Counts represent declaration records for designated areas (usually counties), **not unique disasters**. Map/chart rankings and search cover only loaded records. The successful query snapshot, data and bound status are cached together in memory. Editing draft filters does not relabel existing results; only a successful applied request changes their scope. Details fetch the selected disaster independently of dashboard filters; the same bound and failure behavior apply. Live API paging is not a transactional snapshot and can change while FEMA updates data.
+
+## Build and hosting
+
+`dist/` is a pure static frontend using relative assets and HashRouter; no SPA fallback or server runtime is required. The footer displays package version (pending release `0.1.0`), UTC build time and short commit SHA. CI uses `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA`, with local Git fallback. An uncommitted build's SHA refers to its base commit, not unpublished edits.
+
+English title, description, Open Graph and Twitter text are included. The repository has no confirmed production domain, so canonical/OG URL tags are deliberately deferred rather than invented. No social-image URL is claimed.
+
+DisasterLens is not affiliated with FEMA and is informational only. In an emergency, follow local officials. See [acceptance and remaining limitations](docs/acceptance.md) for what was actually tested and what remains unverified.

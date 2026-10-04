@@ -83,19 +83,44 @@ function friendlyHttpMessage(status: number): string {
   return `The FEMA request failed (HTTP ${status}).`
 }
 
-export async function fetchDisasters(
-  query: DisasterQuery,
+export interface DisasterResult {
+  records: DisasterRecord[]
+  /** Reaching the bound does not prove there are more records. */
+  limitReached: boolean
+}
+
+export function parseDisasterNumber(value: string | undefined): number | null {
+  if (!value || !/^[1-9]\d*$/.test(value)) return null
+  const number = Number(value)
+  return Number.isSafeInteger(number) ? number : null
+}
+
+export function buildDisasterDetailUrl(number: number, top = PAGE_SIZE, skip = 0): string {
+  if (!Number.isSafeInteger(number) || number <= 0) {
+    throw new FemaError('Invalid disaster number.')
+  }
+  return `${FEMA_BASE_URL}?$select=${encode(SELECT_FIELDS)}` +
+    `&$filter=${encode(`disasterNumber eq ${number}`)}` +
+    `&$orderby=${encode('declarationDate desc')}&$top=${top}` +
+    (skip > 0 ? `&$skip=${skip}` : '')
+}
+
+async function fetchPages(
+  buildUrl: (top: number, skip: number) => string,
   signal?: AbortSignal,
-): Promise<DisasterRecord[]> {
+  request: typeof fetch = fetch,
+): Promise<DisasterResult> {
   const all: DisasterRecord[] = []
   let skip = 0
   while (all.length < MAX_RECORDS) {
-    const url = buildDisasterQueryUrl(query, PAGE_SIZE, skip)
+    signal?.throwIfAborted()
+    const top = Math.min(PAGE_SIZE, MAX_RECORDS - all.length)
+    const url = buildUrl(top, skip)
     let response: Response
     try {
-      response = await fetch(url, { signal })
+      response = await request(url, { signal })
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') throw err
+      if (signal?.aborted || (err instanceof Error && err.name === 'AbortError')) throw err
       throw new FemaError('Could not reach FEMA. Check your connection and try again.')
     }
     if (!response.ok) {
@@ -104,23 +129,40 @@ export async function fetchDisasters(
     let payload: unknown
     try {
       payload = await response.json()
-    } catch {
+    } catch (err) {
+      if (signal?.aborted) throw err
       throw new FemaError('FEMA returned a response that could not be read.')
     }
+    signal?.throwIfAborted()
     const records = extractRecords(payload)
+    const textFields = ['state', 'declarationTitle', 'incidentType', 'declarationDate', 'designatedArea', 'declarationType'] as const
+    if (records.length > top || records.some((record) =>
+      !record || !Number.isSafeInteger(record.disasterNumber) || record.disasterNumber <= 0 ||
+      textFields.some((field) => typeof record[field] !== 'string') ||
+      Number.isNaN(Date.parse(record.declarationDate)))) {
+      throw new FemaError('FEMA returned invalid declaration records. No partial result was accepted.')
+    }
     all.push(...records)
-    if (records.length < PAGE_SIZE) break
-    skip += PAGE_SIZE
+    if (records.length < top) return { records: all, limitReached: false }
+    skip += records.length
   }
-  if (all.length > MAX_RECORDS) {
-    return all.slice(0, MAX_RECORDS)
-  }
-  return all
+  return { records: all, limitReached: true }
 }
 
-export interface CacheEntry {
+export function fetchDisasters(query: DisasterQuery, signal?: AbortSignal, request?: typeof fetch): Promise<DisasterResult> {
+  return fetchPages((top, skip) => buildDisasterQueryUrl(query, top, skip), signal, request)
+}
+
+export async function fetchDisasterDetail(number: number, signal?: AbortSignal, request?: typeof fetch): Promise<DisasterResult> {
+  const result = await fetchPages((top, skip) => buildDisasterDetailUrl(number, top, skip), signal, request)
+  if (result.records.some((record) => record.disasterNumber !== number)) {
+    throw new FemaError('FEMA returned records for a different disaster. Please retry.')
+  }
+  return result
+}
+
+export interface CacheEntry extends DisasterResult {
   query: DisasterQuery
-  records: DisasterRecord[]
   fetchedAt: number
 }
 
@@ -128,11 +170,12 @@ let cache: CacheEntry | null = null
 
 export function setCachedDisasters(
   query: DisasterQuery,
-  records: DisasterRecord[],
+  result: DisasterResult,
 ): void {
   cache = {
     query: { ...query, incidentTypes: [...query.incidentTypes] },
-    records,
+    records: result.records,
+    limitReached: result.limitReached,
     fetchedAt: Date.now(),
   }
 }

@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import EmptyState from '../components/EmptyState.tsx'
-import { getCachedDisasters } from '../lib/fema.ts'
+import ErrorBanner from '../components/ErrorBanner.tsx'
+import { fetchDisasterDetail, parseDisasterNumber, type DisasterResult } from '../lib/fema.ts'
 import { formatDate } from '../lib/format.ts'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -11,26 +13,34 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function DisasterDetailPage() {
   const { disasterNumber } = useParams()
-  const entry = getCachedDisasters()
-  const number = Number(disasterNumber)
-  const matches =
-    entry?.records.filter((record) => record.disasterNumber === number) ?? []
+  const number = parseDisasterNumber(disasterNumber)
+  const [attempt, setAttempt] = useState(0)
+  const [loaded, setLoaded] = useState<{ number: number; attempt: number; result?: DisasterResult; error?: string } | null>(null)
+  useEffect(() => {
+    if (number === null) return
+    const controller = new AbortController()
+    void fetchDisasterDetail(number, controller.signal).then((result) => {
+      if (!controller.signal.aborted) setLoaded({ number, attempt, result })
+    }).catch((err: unknown) => {
+      if (!controller.signal.aborted) setLoaded({ number, attempt, error: err instanceof Error ? err.message : 'Could not load details from FEMA.' })
+    })
+    return () => controller.abort()
+  }, [number, attempt])
+
+  if (number === null) return <EmptyState title="Invalid disaster number" hint="Use a positive whole-number FEMA disaster ID." />
+  const current = loaded?.number === number && loaded.attempt === attempt ? loaded : null
+  if (current === null) return <p role="status" className="text-base text-slate-600">Loading disaster details from FEMA…</p>
+  if (current.error) return <ErrorBanner message={current.error} onRetry={() => setAttempt((value) => value + 1)} />
+  const result = current.result!
+  const matches = result.records
   const primary = matches[0] ?? null
   const areas = [...new Set(matches.map((record) => record.designatedArea))]
 
   if (primary === null) {
     return (
       <EmptyState
-        title={
-          entry === null
-            ? 'No declarations loaded yet'
-            : `Disaster #${disasterNumber} is not in the loaded dataset`
-        }
-        hint={
-          entry === null
-            ? 'Load declarations from the dashboard or explore page, then return here.'
-            : 'The dataset currently loaded may use filters that exclude this disaster.'
-        }
+        title={`No declaration found for disaster #${disasterNumber}`}
+        hint="FEMA returned no records for this number. Try another declaration."
       >
         <Link
           to="/disasters"
@@ -48,9 +58,14 @@ export default function DisasterDetailPage() {
         to="/disasters"
         className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
       >
-        ← Back to all declarations
+        ← Back to loaded declarations
       </Link>
 
+      {result.limitReached ? (
+        <p role="note" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          The 5,000-record loading limit was reached. The designated-area list below may be incomplete.
+        </p>
+      ) : null}
       <article className="rounded-lg border border-slate-200 bg-white p-6">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
@@ -94,7 +109,7 @@ export default function DisasterDetailPage() {
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              Designated area{areas.length > 1 ? `s (${areas.length})` : ''}
+              Loaded designated area{areas.length > 1 ? `s (${areas.length})` : ''}
             </dt>
             <dd className="mt-1 text-sm text-slate-900">
               {areas.length > 1 ? (
@@ -110,8 +125,8 @@ export default function DisasterDetailPage() {
           </div>
         </dl>
         <p className="mt-6 border-t border-slate-100 pt-4 text-xs text-slate-500">
-          Details come from the FEMA Disaster Declarations Summaries dataset
-          loaded in this browser session.
+          Queried directly from OpenFEMA for disaster #{number}, independently of dashboard filters.
+          This is declaration information, not a real-time hazard alert.
         </p>
       </article>
     </div>

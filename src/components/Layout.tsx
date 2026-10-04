@@ -74,6 +74,9 @@ export default function Layout() {
             . DisasterLens is informational only — in an emergency, follow your
             local officials.
           </p>
+          <p className="mt-3" aria-label="Website build information">
+            Version {__APP_VERSION__} · Built {__BUILD_TIME__.replace('T', ' ').slice(0, 16)} UTC · {__COMMIT_SHA__}
+          </p>
         </div>
       </footer>
     </div>
