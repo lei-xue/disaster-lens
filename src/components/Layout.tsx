@@ -11,6 +11,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 function routeTitle(pathname: string): string {
   if (pathname.startsWith('/disaster/')) return 'Declaration details — DisasterLens'
   switch (pathname) {
+    case '/alerts':
+      return 'Current weather alerts — DisasterLens'
     case '/disasters':
       return 'Explore declarations — DisasterLens'
     case '/preparedness':
@@ -96,6 +98,11 @@ export default function Layout() {
                 </NavLink>
               </li>
               <li>
+                <NavLink to="/alerts" className={navLinkClass}>
+                  Alerts
+                </NavLink>
+              </li>
+              <li>
                 <NavLink to="/about" className={navLinkClass}>
                   About
                 </NavLink>
@@ -115,12 +122,19 @@ export default function Layout() {
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-500 sm:px-6">
           <p>
-            Data from the{' '}
+            Historical disaster declarations from the{' '}
             <a
               className="font-medium text-blue-700 hover:underline"
               href="https://www.fema.gov/about/openfema"
             >
               FEMA OpenFEMA API
+            </a>
+            ; current weather alerts on the Alerts page from the{' '}
+            <a
+              className="font-medium text-blue-700 hover:underline"
+              href="https://www.weather.gov/documentation/services-web-api"
+            >
+              National Weather Service API
             </a>
             . DisasterLens is informational only — in an emergency, follow your
             local officials.

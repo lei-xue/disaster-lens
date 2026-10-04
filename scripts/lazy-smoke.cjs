@@ -6,7 +6,7 @@ const base = process.env.BASE_URL || 'http://127.0.0.1:8792/';
   const browser = await chromium.launch();
   const results = [];
   try {
-    for (const route of ['#/about', '#/preparedness', '#/disasters', '#/disaster/4945', '#/']) {
+    for (const route of ['#/about', '#/preparedness', '#/alerts', '#/disasters', '#/disaster/4945', '#/']) {
       const page = await browser.newPage({ reducedMotion: 'reduce' });
       const assets = [];
       const errors = [];

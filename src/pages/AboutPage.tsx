@@ -60,6 +60,13 @@ export default function AboutPage() {
           Details query the selected disaster independently, including older declarations.
           Data is fetched on page load or an applied query, not continuously monitored; freshness depends on FEMA updates.
         </p>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          Separately from this FEMA declaration history, the Alerts page loads current
+          active weather alerts directly from the National Weather Service API
+          (api.weather.gov) for a state or territory you select. That snapshot covers
+          official NWS weather alerts only, may be delayed or cached, and is not a
+          guaranteed real-time warning or notification service.
+        </p>
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">

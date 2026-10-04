@@ -37,7 +37,7 @@ const out=process.env.SCREENSHOT_DIR||path.join(process.cwd(),'docs/screenshots'
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({width,source:'LIVE OpenFEMA; no request interception',scope,areas,errors}));await page.close();
  }
- const meta=fs.readFileSync('dist/index.html','utf8');assert.match(meta,/og:description/);assert.match(meta,/twitter:description/);assert.match(meta,/not real-time hazard alerts/);
+ const meta=fs.readFileSync('dist/index.html','utf8');assert.match(meta,/og:description/);assert.match(meta,/twitter:description/);assert.match(meta,/National Weather Service alerts/);assert.match(meta,/not a guaranteed real-time warning service/);
  console.log('PASS live dashboard/explore sorting/pagination/empty/about/preparedness/detail, version, raw HTML metadata and screenshots at 320/390/1440. Live sample may change as FEMA updates.');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

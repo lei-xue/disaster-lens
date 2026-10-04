@@ -1,6 +1,6 @@
 # DisasterLens
 
-An English, static React + TypeScript dashboard that fetches disaster declarations online from OpenFEMA v2. No business backend, API key or application analytics. **Online data retrieval is not real-time hazard monitoring**: the app does not poll or push alerts, and freshness depends on FEMA publishing updates.
+An English, static React + TypeScript dashboard for FEMA disaster declaration history and current National Weather Service weather-alert snapshots. No business backend, API key or application analytics. **Online retrieval is not guaranteed real-time hazard monitoring**: FEMA history loads on request; the separate Alerts page offers optional 5-minute polling while visible, not push notifications. Freshness depends on each official source.
 
 ## Pages
 
@@ -8,6 +8,7 @@ An English, static React + TypeScript dashboard that fetches disaster declaratio
 - `/#/disasters` — search, sort and paginate loaded records (25 per page).
 - `/#/disaster/:disasterNumber` — independently paginated detail query; direct visits and refresh work without a dashboard cache.
 - `/#/preparedness` — emergency preparation guidance.
+- `/#/alerts` — current active NWS weather alerts for a user-selected state/territory; nothing loads until a state is chosen and "Load alerts" is clicked.
 - `/#/about` — source, count definitions, limitations and disclaimer.
 
 ## Commands
@@ -31,9 +32,11 @@ Queries fetch client-side from `https://www.fema.gov/api/open/v2/DisasterDeclara
 
 Counts represent declaration records for designated areas (usually counties), **not unique disasters**. Map/chart rankings and search cover only loaded records. The successful query snapshot, data and bound status are cached together in memory. Editing draft filters does not relabel existing results; only a successful applied request changes their scope. Details fetch the selected disaster independently of dashboard filters; the same bound and failure behavior apply. Live API paging is not a transactional snapshot and can change while FEMA updates data.
 
+The Alerts page is a separate data source: it fetches current active weather alerts client-side from `https://api.weather.gov/alerts/active` for one user-selected state/territory per request (`status=actual`, `message_type=alert,update`; the endpoint supports no pagination, so none is requested, and rendering is capped at 500 records with a visible notice). The query includes only the selected state code plus normal connection information (IP address, browser headers) that NWS receives; the app does not request device geolocation or any browser permission. Snapshots may be delayed or cached and cover official NWS weather alerts only, not all hazards; it is not a guaranteed real-time warning or notification service — optional auto-refresh is a 5-minute poll while the tab is visible, never push. Always follow local officials.
+
 ## Build and hosting
 
-`dist/` is a pure static frontend using relative assets and HashRouter; no SPA fallback or server runtime is required. The footer displays package version (`0.1.2`), UTC build time and short commit SHA. Pages load on demand, so non-dashboard entries do not download the map/chart chunk; the navigation shell stays available while a page chunk loads. CI uses `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA`, with local Git fallback. An uncommitted build's SHA refers to its base commit, not unpublished edits.
+`dist/` is a pure static frontend using relative assets and HashRouter; no SPA fallback or server runtime is required. The footer displays package version (`0.2.0`), UTC build time and short commit SHA. Pages load on demand, so non-dashboard entries do not download the map/chart chunk; the navigation shell stays available while a page chunk loads. CI uses `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA`, with local Git fallback. An uncommitted build's SHA refers to its base commit, not unpublished edits.
 
 English title, description, Open Graph and Twitter text are included. The repository has no confirmed production domain, so canonical/OG URL tags are deliberately deferred rather than invented. No social-image URL is claimed.
 

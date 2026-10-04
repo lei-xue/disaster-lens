@@ -46,12 +46,13 @@ const pressSkip = async (page, hash) => {
 (async () => {
   const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
   try {
-    // 1. Skip link + route titles on all 5 hash routes (fresh page per route).
+    // 1. Skip link + route titles on all 6 hash routes (fresh page per route).
     const routes = [
       ['#/', 'FEMA disaster declarations', 'Dashboard — DisasterLens'],
       ['#/disasters', 'Explore declarations', 'Explore declarations — DisasterLens'],
       ['#/disaster/4945', 'SYNTHETIC Hurricane 4945', 'Declaration details — DisasterLens'],
       ['#/preparedness', 'Preparedness', 'Preparedness guide — DisasterLens'],
+      ['#/alerts', 'Current weather alerts', 'Current weather alerts — DisasterLens'],
       ['#/about', 'About DisasterLens', 'About — DisasterLens'],
     ];
     for (const [hash, heading, title] of routes) {
@@ -64,7 +65,7 @@ const pressSkip = async (page, hash) => {
       await pressSkip(page, hash);
       await page.close();
     }
-    console.log('PASS skip-link (first tab stop, hash unchanged, main focused) + titles on 5 routes');
+    console.log('PASS skip-link (first tab stop, hash unchanged, main focused) + titles on 6 routes');
 
     // 2. No page overflow at 320/390/1440, default and 200% root font.
     // Check every route after its content is committed; collect failures so

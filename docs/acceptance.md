@@ -91,3 +91,24 @@ The previously deferred route-splitting item was advanced after the user instruc
 ```sh
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/lazy-smoke.cjs
 ```
+
+## v0.2.0 current NWS alerts acceptance
+
+The user approved continuing the Kimi plan. See [NWS alerts plan](nws-alerts-plan.md). Business-code implementation used Kimi K3; UI session `20261004_215506_b82497` and repair session `20261004_220507_2c0034` were verified as actual `kimi-k3` / billed provider `custom`. The repair worker exceeded its reporting deadline after useful edits; its exit was not counted as acceptance. Coordinator separately inspected and exercised the final artifacts.
+
+- Added independent, lazy `#/alerts`: no initial request or inferred location; state/territory query requires Load. Cards show source text, severity/urgency/certainty, UTC timestamps, plain-text disclosures and validated official JSON links. Unknown/missing information is explicit.
+- Successful snapshot area/time/result stay tied together. Draft changes do not relabel old results; Refresh reuses the applied area. Failed refreshes retain the last good snapshot labeled stale. Expired records are visibly no longer current. No synthesized fallback data.
+- Auto-refresh is opt-in, five minutes, visible-tab only, paused while hidden and no immediate catch-up request on return. Browser regression covers a CA-to-TX applied-area change with auto-refresh already enabled, so an old area's timer cannot silently reload it.
+- Response validation rejects malformed payloads as a whole. Non-Actual/Cancel/Test/Exercise records are not displayed. Newest 500 render at most with an explicit actual returned-record total/cap disclosure. Unsupported API paging params are never sent.
+- A 20-second deadline covers request and JSON body, even when a test transport/parser ignores the AbortSignal. Caller abort, navigation cleanup and request-token invalidation prevent obsolete results.
+- Fresh `npm ci`: 0 audit findings. `npm test`: **74 passed, 0 failed**. Lint: clean. Production build: passed. `git diff --check`: passed. Dependency tree, FEMA data module and lint configuration unchanged.
+- `scripts/nws-smoke.cjs`: synthetic intercepted NWS regression passed for explicit initial action/skip focus, applied-vs-draft refresh, stale/error preservation, expanded content at 320/390/1440 and 100%/200% root text, five-minute boundary, hidden visibility pause, applied-area switch, disabled polling, expired label, empty disclaimer and deadline. Visibility changes are deliberately simulated; this is not physical-device acceptance.
+- `scripts/uiux-smoke.cjs`: expanded to all six routes; skip/title/focus and default/200% overflow gates, reduced-motion pending skeleton, existing target/sort/text alternatives passed. `scripts/lazy-smoke.cjs`: all six real route entries passed; Alerts does not download Dashboard's map/chart chunk.
+- Real NWS browser sample through the page: CA request to `/alerts/active?area=CA&status=actual&message_type=alert%2Cupdate` returned **HTTP 200**, rendered **22 records**, official JSON links, and no page errors on 2026-10-04 at 22:06 UTC. Counts/content can change. Real FEMA regression separately checked three widths, dashboard bound, Explore pagination/sort/empty, About, Preparedness and independent detail; legacy metadata assertion was updated to require NWS source wording plus the non-guaranteed-real-time disclaimer.
+- Initial 320px/200% browser failure measured 513px document width; K3 repaired intrinsic form min-width and long field wrapping without hiding overflow. Coordinator also identified and regression-tested the polling effect's applied-area dependency. Fake-clock freezing before the lazy route was moved after mount to fix a harness-only failure, not bypass layout assertions.
+- Version is 0.2.0; English static description/OG/Twitter and source copy distinguish FEMA history from NWS snapshots. Entry JS is 265.66 kB / 84.46 kB gzip; Alerts is 14.51 kB / 4.55 kB gzip. Dashboard's ~609 kB chunk advisory remains disclosed, not suppressed.
+- Feature-branch commit/push follows validation; no production merge/deployment or guessed canonical domain. Manual screen-reader, physical-phone, subjective visual approval and production readback remain unverified.
+
+```sh
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/nws-smoke.cjs
+```

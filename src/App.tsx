@@ -6,6 +6,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage.tsx'))
 const ExplorePage = lazy(() => import('./pages/ExplorePage.tsx'))
 const DisasterDetailPage = lazy(() => import('./pages/DisasterDetailPage.tsx'))
 const PreparednessPage = lazy(() => import('./pages/PreparednessPage.tsx'))
+const AlertsPage = lazy(() => import('./pages/AlertsPage.tsx'))
 const AboutPage = lazy(() => import('./pages/AboutPage.tsx'))
 
 function RoutePending() {
@@ -49,6 +50,14 @@ function App() {
           element={
             <Suspense fallback={<RoutePending />}>
               <PreparednessPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="alerts"
+          element={
+            <Suspense fallback={<RoutePending />}>
+              <AlertsPage />
             </Suspense>
           }
         />
