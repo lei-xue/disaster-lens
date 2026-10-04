@@ -2,7 +2,7 @@
 
 ## Scope and authorization
 
-Based on Kimi K3 planning session `20261003_163148_c70e75` (actual `kimi-k3` / `custom`), independently corrected to require detail pagination and avoid treating exactly 5,000 rows as proven truncation. Coordinator implemented after user instructed continuation. Branch: `fix/disasterlens-data-flow`, base `58915d9`. No commit, push, merge, DNS changes or deployment performed.
+Based on Kimi K3 planning session `20261003_163148_c70e75` (actual `kimi-k3` / `custom`), independently corrected to require detail pagination and avoid treating exactly 5,000 rows as proven truncation. Coordinator implemented after user instructed continuation. Branch: `fix/disasterlens-data-flow`, base `58915d9`; implementation committed as `c2c85d0`. The user subsequently authorized commit/push and prioritized finishing this simple project without extra features. No production merge, DNS changes or deployment performed in this acceptance pass.
 
 ## Changes
 
@@ -46,7 +46,15 @@ Capture is not subjective visual approval or a manual screen-reader/motion audit
 
 ## Remaining boundaries
 
-- User acceptance, commit/push and deployment are still pending. No verified deployed v0.1.0 URL exists in this task.
-- Uncommitted build footer SHA identifies base HEAD `58915d9`, not these unpublished edits; a future authorized commit/rebuild will update it.
+- Production deployment and manual user acceptance remain pending. No verified deployed v0.1.0 URL exists in this task; a GitHub branch push alone is not a deployment.
+- Fresh post-implementation builds derive metadata from committed HEAD, rather than the old uncommitted base. A documentation commit also requires rebuilding before any later deployment.
 - Live FEMA pagination is not a transactional snapshot and the data may change during loading. A bound warning does not prove missing records, only that complete coverage was not established.
 - Lint is now warning-free. Bundle-size advisory, subjective visual/keyboard/screen-reader review and production-domain-specific metadata remain explicitly open; do not equate this local check with full production acceptance.
+
+## Fresh continuation check
+
+- Fetched `origin`; no remote-main-only commits required integration.
+- Re-ran lint, all 58 tests (0 failures), and production build successfully. The ~897 kB minified chunk advisory remains visible; no warning threshold was increased to hide it.
+- Re-ran `scripts/live-smoke.cjs` against the rebuilt artifact using real OpenFEMA requests, with no interception: passed at 320/390/1440px. Dashboard cap disclosure, Explore pagination/sort/empty results, About, Preparedness, direct detail, metadata and version checks all passed, with no page errors.
+- Disaster 4945 again returned the seven recorded county areas. This remains a changing source-data sample, not a permanent data guarantee.
+- Fresh screenshots were captured in active-profile scratch so the earlier committed evidence was not overwritten. No new features or speculative redesign were introduced.
