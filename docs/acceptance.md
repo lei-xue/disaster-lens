@@ -1,4 +1,4 @@
-# DisasterLens v0.1.0 acceptance — local, unpublished
+# DisasterLens acceptance — v0.1.0 data flow and v0.1.1 page/UIUX
 
 ## Scope and authorization
 
@@ -58,3 +58,23 @@ Capture is not subjective visual approval or a manual screen-reader/motion audit
 - Re-ran `scripts/live-smoke.cjs` against the rebuilt artifact using real OpenFEMA requests, with no interception: passed at 320/390/1440px. Dashboard cap disclosure, Explore pagination/sort/empty results, About, Preparedness, direct detail, metadata and version checks all passed, with no page errors.
 - Disaster 4945 again returned the seven recorded county areas. This remains a changing source-data sample, not a permanent data guarantee.
 - Fresh screenshots were captured in active-profile scratch so the earlier committed evidence was not overwritten. No new features or speculative redesign were introduced.
+
+## v0.1.1 page/UIUX acceptance
+
+The user requested a full Kimi plan followed directly by Kimi K3 implementation. See [page/UIUX plan and implemented/deferred checklist](page-uiux-plan.md). Actual worker routes were `kimi-k3` / billed provider `custom`, verified from session usage. Planning session: `20261004_163007_5240c0`; successful code closeout: `20261004_164537_52b52e`; successful zoom repairs: `20261004_170557_8eb5ec`. Earlier implementation/test workers timed out; their partial work was preserved and checked rather than counted as completion.
+
+- Shared shell: route titles, hash-preserving first-tab skip link, route-navigation focus without initial StrictMode focus theft, consistent focus-visible styling and practical 44px navigation/filter/pagination controls.
+- Dashboard: map accessible name plus complete loaded state counts in HTML; year counts in an HTML disclosure; existing type legend retained; chart units/summaries clarified without extra API calls.
+- Explore: labeled keyboard-focusable internal scroll region and table caption, keyboard sorting and explicit title links. Detail: structured loading skeleton/status. Preparedness: summary targets and reduced motion. About/Preparedness factual text preserved.
+- Coordinator found real default/200% narrow-layout failures. K3 repaired min-content grids, wrapping controls/pagination, long headings/links, brand and detail padding without globally hiding overflow or truncating important content.
+- Independent final `npm test`: 58 passed, 0 failed. `npm run lint`: clean. `npm run build`: passed; approximately 902 kB main JS advisory remains disclosed. `git diff --check`: passed. Production-only dependency audit: 0 findings.
+- `scripts/uiux-smoke.cjs`: all checks passed using explicitly synthetic intercepted records. Checks cover all five routes at 320/390/1440px and default/200% root text, skip-link hash/focus/title, reduced-motion pending skeleton, actual control targets, keyboard sort, map/year HTML alternatives. The coordinator fixed generated harness errors rather than weakening assertions.
+- `scripts/live-smoke.cjs`: passed independently using real FEMA requests at 320/390/1440px, preserving cap warnings, paging, sorting, empty results and direct details; no page errors. Version expectation now derives from the manifest.
+- Optional TOC/extra anchors and route/chunk splitting deferred to keep scope simple. No new dependencies or data-library/lint-config changes. Manual screen-reader, physical-phone and subjective visual acceptance remain unverified.
+- Commit/push follow this verification; production merge/deployment and canonical-domain metadata remain separate. Rebuild after committing to read the exact footer SHA before announcing any release.
+
+Reproduce the added UIUX checks against a built static preview:
+
+```sh
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/uiux-smoke.cjs
+```

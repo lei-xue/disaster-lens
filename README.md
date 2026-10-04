@@ -33,7 +33,7 @@ Counts represent declaration records for designated areas (usually counties), **
 
 ## Build and hosting
 
-`dist/` is a pure static frontend using relative assets and HashRouter; no SPA fallback or server runtime is required. The footer displays package version (pending release `0.1.0`), UTC build time and short commit SHA. CI uses `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA`, with local Git fallback. An uncommitted build's SHA refers to its base commit, not unpublished edits.
+`dist/` is a pure static frontend using relative assets and HashRouter; no SPA fallback or server runtime is required. The footer displays package version (`0.1.1`), UTC build time and short commit SHA. CI uses `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA`, with local Git fallback. An uncommitted build's SHA refers to its base commit, not unpublished edits.
 
 English title, description, Open Graph and Twitter text are included. The repository has no confirmed production domain, so canonical/OG URL tags are deliberately deferred rather than invented. No social-image URL is claimed.
 

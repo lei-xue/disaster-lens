@@ -188,7 +188,7 @@ export default function DashboardPage() {
         aria-label="Filters"
         className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5"
       >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 [&>*]:min-w-0">
           <div>
             <label
               htmlFor="filter-from-year"
@@ -200,7 +200,7 @@ export default function DashboardPage() {
               id="filter-from-year"
               value={startYear}
               onChange={(event) => setStartYear(Number(event.target.value))}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+              className="mt-1 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -220,7 +220,7 @@ export default function DashboardPage() {
               id="filter-to-year"
               value={endYear}
               onChange={(event) => setEndYear(Number(event.target.value))}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+              className="mt-1 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
               id="filter-state"
               value={stateCode}
               onChange={(event) => setStateCode(event.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+              className="mt-1 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
             >
               <option value="">All states</option>
               {US_STATES.map((state) => (
@@ -250,18 +250,19 @@ export default function DashboardPage() {
               ))}
             </select>
           </div>
-          <div className="flex items-end gap-2">
+          <div className="flex flex-wrap items-end gap-2">
             <button
               type="button"
               onClick={applyFilters}
-              className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+              aria-describedby={hasDraftChanges ? 'filters-changed-hint' : undefined}
+              className="min-h-11 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
             >
               Apply filters
             </button>
             <button
               type="button"
               onClick={resetFilters}
-              className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+              className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
             >
               Reset
             </button>
@@ -280,7 +281,7 @@ export default function DashboardPage() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => toggleType(type)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${
+                  className={`min-h-11 rounded-full border px-4 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${
                     active
                       ? 'border-blue-700 bg-blue-700 text-white'
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
@@ -294,7 +295,11 @@ export default function DashboardPage() {
         </fieldset>
       </section>
 
-      {hasDraftChanges ? <p className="text-sm text-slate-600">Filters have changed. Apply them to update the loaded view.</p> : null}
+      {hasDraftChanges ? (
+        <p id="filters-changed-hint" role="status" className="text-sm text-slate-600">
+          Filters have changed. Apply them to update the loaded view.
+        </p>
+      ) : null}
 
       {status === 'error' ? (
         <ErrorBanner message={errorMessage} onRetry={applyFilters} />
@@ -326,7 +331,7 @@ export default function DashboardPage() {
       {hasData ? (
         <div className="space-y-6">
           {entry ? <DataScope entry={entry} /> : null}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 [&>*]:min-w-0">
             <KpiCard
               label="Declaration records"
               value={formatNumber(records.length)}
@@ -351,14 +356,14 @@ export default function DashboardPage() {
 
           <ChartCard
             title="Declaration records map"
-            subtitle="Count per state in the current view; hover a state for details"
+            subtitle="County/area declaration records per state in the current view (not unique disasters); hover a state or open the text table for values"
           >
             <StateChoropleth counts={allStateCounts} selectedState={appliedState} />
           </ChartCard>
 
           <ChartCard
             title="Declaration records by state"
-            subtitle="Top 15 states and territories in the current view"
+            subtitle="Top 15 states and territories by county/area declaration records in the current view (not unique disasters)"
           >
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -367,14 +372,23 @@ export default function DashboardPage() {
                   <XAxis dataKey="state" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#cbd5e1' }} interval={0} angle={-45} textAnchor="end" height={50} />
                   <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
                   <Tooltip cursor={{ fill: 'rgba(30, 64, 175, 0.08)' }} />
-                  <Bar dataKey="count" name="Declarations" fill="#1d4ed8" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="count" name="Declaration records" fill="#1d4ed8" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {stateData.length > 0 ? (
+              <p className="mt-3 text-sm text-slate-600">
+                Highest: {stateData[0].state} with {formatNumber(stateData[0].count)}{' '}
+                records in this view.
+              </p>
+            ) : null}
           </ChartCard>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ChartCard title="Declaration records per year">
+          <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+            <ChartCard
+              title="Declaration records per year"
+              subtitle="County/area declaration records per year in the current view (not unique disasters)"
+            >
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={yearData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -382,14 +396,48 @@ export default function DashboardPage() {
                     <XAxis dataKey="year" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#cbd5e1' }} />
                     <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="count" name="Declarations" stroke="#d97706" strokeWidth={2} dot={{ r: 3, fill: '#f59e0b' }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="count" name="Declaration records" stroke="#d97706" strokeWidth={2} dot={{ r: 3, fill: '#f59e0b' }} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+              <details className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                  Declaration records per year (text table, {yearData.length}{' '}
+                  {yearData.length === 1 ? 'year' : 'years'})
+                </summary>
+                <table className="mt-2 w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase">
+                      <th scope="col" className="py-1 pr-4 font-semibold">Year</th>
+                      <th scope="col" className="py-1 font-semibold">Declaration records</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {yearData.map((item) => (
+                      <tr key={item.year}>
+                        <td className="py-1 pr-4 text-slate-700">{item.year}</td>
+                        <td className="py-1 text-slate-700">{formatNumber(item.count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </details>
+              {yearData.length > 0 ? (
+                <p className="mt-3 text-sm text-slate-600">
+                  Busiest year:{' '}
+                  {yearData.reduce((top, item) => (item.count > top.count ? item : top), yearData[0]).year}{' '}
+                  with{' '}
+                  {formatNumber(yearData.reduce((top, item) => (item.count > top.count ? item : top), yearData[0]).count)}{' '}
+                  records in this view.
+                </p>
+              ) : null}
             </ChartCard>
 
-            <ChartCard title="Share by incident type">
-              <div className="flex h-80 flex-col items-center gap-4 sm:flex-row">
+            <ChartCard
+              title="Share by incident type"
+              subtitle="Share of county/area declaration records by incident type in the current view (not unique disasters)"
+            >
+              <div className="flex flex-col items-center gap-4 sm:flex-row">
                 <div className="h-64 w-full sm:w-1/2">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -424,7 +472,7 @@ export default function DashboardPage() {
                         className="h-3 w-3 shrink-0 rounded-sm"
                         style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                       />
-                      <span className="truncate text-slate-700">{entry.type}</span>
+                      <span className="min-w-0 text-slate-700">{entry.type}</span>
                       <span className="ml-auto shrink-0 text-slate-500">
                         {formatNumber(entry.count)} · {formatShare(entry.share)}
                       </span>
@@ -432,6 +480,12 @@ export default function DashboardPage() {
                   ))}
                 </ul>
               </div>
+              {pieData.length > 0 ? (
+                <p className="mt-3 text-sm text-slate-600">
+                  Most common type: {pieData[0].type} with {formatNumber(pieData[0].count)}{' '}
+                  records ({formatShare(pieData[0].share)}) in this view.
+                </p>
+              ) : null}
             </ChartCard>
           </div>
 

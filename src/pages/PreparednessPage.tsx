@@ -85,7 +85,7 @@ export default function PreparednessPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
           Preparedness guide
         </h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -113,17 +113,17 @@ export default function PreparednessPage() {
             </h2>
             <div className="mt-3 divide-y divide-slate-100">
               {section.items.map((item) => (
-                <details key={item.summary} className="group py-3">
-                  <summary className="cursor-pointer list-none text-sm font-semibold text-slate-800 marker:hidden hover:text-blue-700 [&::-webkit-details-marker]:hidden">
+                <details key={item.summary} className="group py-2">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-slate-800 marker:hidden hover:text-blue-700 [&::-webkit-details-marker]:hidden">
                     <span
                       aria-hidden="true"
-                      className="mr-1.5 inline-block text-blue-700 transition-transform group-open:rotate-90"
+                      className="mr-1.5 inline-block text-blue-700 transition-transform motion-reduce:transition-none group-open:rotate-90"
                     >
                       ▸
                     </span>
                     {item.summary}
                   </summary>
-                  <p className="mt-2 pl-5 text-sm leading-relaxed text-slate-600">
+                  <p className="mt-2 pl-5 text-sm leading-relaxed text-slate-600 [overflow-wrap:anywhere]">
                     {item.details}
                   </p>
                 </details>
@@ -135,7 +135,7 @@ export default function PreparednessPage() {
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
         <h2 className="text-lg font-semibold text-slate-900">Key resources</h2>
-        <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+        <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2 [&>*]:min-w-0 [&_a]:[overflow-wrap:anywhere]">
           <li>
             <a
               className="text-blue-700 hover:underline"

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import EmptyState from '../components/EmptyState.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
+import { DetailSkeleton } from '../components/Skeleton.tsx'
 import { fetchDisasterDetail, parseDisasterNumber, type DisasterResult } from '../lib/fema.ts'
 import { formatDate } from '../lib/format.ts'
 
@@ -29,7 +30,14 @@ export default function DisasterDetailPage() {
 
   if (number === null) return <EmptyState title="Invalid disaster number" hint="Use a positive whole-number FEMA disaster ID." />
   const current = loaded?.number === number && loaded.attempt === attempt ? loaded : null
-  if (current === null) return <p role="status" className="text-base text-slate-600">Loading disaster details from FEMA…</p>
+  if (current === null) {
+    return (
+      <div role="status" aria-label="Loading disaster details">
+        <DetailSkeleton />
+        <p className="sr-only">Loading disaster details from FEMA…</p>
+      </div>
+    )
+  }
   if (current.error) return <ErrorBanner message={current.error} onRetry={() => setAttempt((value) => value + 1)} />
   const result = current.result!
   const matches = result.records
@@ -66,7 +74,7 @@ export default function DisasterDetailPage() {
           The 5,000-record loading limit was reached. The designated-area list below may be incomplete.
         </p>
       ) : null}
-      <article className="rounded-lg border border-slate-200 bg-white p-6">
+      <article className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 [overflow-wrap:anywhere] sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
             {TYPE_LABELS[primary.declarationType] ?? primary.declarationType}
@@ -78,7 +86,7 @@ export default function DisasterDetailPage() {
         <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
           {primary.declarationTitle}
         </h1>
-        <dl className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+        <dl className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2 [&>*]:min-w-0">
           <div>
             <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
               Disaster number
@@ -113,7 +121,7 @@ export default function DisasterDetailPage() {
             </dt>
             <dd className="mt-1 text-sm text-slate-900">
               {areas.length > 1 ? (
-                <ul className="mt-1 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="mt-1 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
                   {areas.map((area) => (
                     <li key={area}>{area}</li>
                   ))}

@@ -74,7 +74,7 @@ export default function AboutPage() {
                   {type.code}
                 </span>
               </dt>
-              <dd className="text-sm">
+              <dd className="min-w-0 text-sm [overflow-wrap:anywhere]">
                 <p className="font-semibold text-slate-900">{type.label}</p>
                 <p className="mt-0.5 leading-relaxed text-slate-600">
                   {type.meaning}

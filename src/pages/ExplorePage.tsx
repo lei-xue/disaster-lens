@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import EmptyState from '../components/EmptyState.tsx'
 import DataScope from '../components/DataScope.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
@@ -27,7 +27,6 @@ const COLUMNS: Array<{ key: SortKey; label: string }> = [
 ]
 
 export default function ExplorePage() {
-  const navigate = useNavigate()
   const [cacheEntry, setCacheEntry] = useState<CacheEntry | null>(() =>
     getCachedDisasters(),
   )
@@ -162,8 +161,16 @@ export default function ExplorePage() {
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div
+            className="overflow-x-auto rounded-lg border border-slate-200 bg-white"
+            tabIndex={0}
+            role="region"
+            aria-label="Declaration records table, scroll horizontally to see all columns"
+          >
             <table className="w-full min-w-3xl text-left text-sm">
+              <caption className="sr-only">
+                Declaration records matching the current search. Column headers sort the table. Open a title link for declaration details.
+              </caption>
               <thead className="border-b border-slate-200 bg-slate-50">
                 <tr>
                   {COLUMNS.map((column) => (
@@ -182,7 +189,7 @@ export default function ExplorePage() {
                       <button
                         type="button"
                         onClick={() => handleSort(column.key)}
-                        className="inline-flex items-center gap-1 hover:text-slate-900"
+                        className="inline-flex min-h-11 items-center gap-1 px-1 font-semibold hover:text-slate-900"
                       >
                         {column.label}
                         <span aria-hidden="true" className="text-xs">
@@ -208,15 +215,11 @@ export default function ExplorePage() {
                   rows.map((record, index) => (
                     <tr
                       key={`${record.disasterNumber}-${index}`}
-                      onClick={() =>
-                        navigate(`/disaster/${record.disasterNumber}`)
-                      }
-                      className="cursor-pointer hover:bg-slate-50"
+                      className="hover:bg-slate-50"
                     >
                       <td className="px-4 py-3">
                         <Link
                           to={`/disaster/${record.disasterNumber}`}
-                          onClick={(event) => event.stopPropagation()}
                           className="font-medium text-blue-700 hover:underline"
                         >
                           {record.declarationTitle}
@@ -239,18 +242,18 @@ export default function ExplorePage() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-slate-500">
               {total > 0
                 ? `Showing ${formatNumber(firstRow)}–${formatNumber(lastRow)} of ${formatNumber(total)}`
                 : 'No records to show'}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 disabled={safePage <= 1}
                 onClick={() => setPage(safePage - 1)}
-                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Previous
               </button>
@@ -261,7 +264,7 @@ export default function ExplorePage() {
                 type="button"
                 disabled={safePage >= pageCount}
                 onClick={() => setPage(safePage + 1)}
-                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
               </button>

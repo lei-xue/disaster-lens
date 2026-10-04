@@ -54,6 +54,8 @@ export default function StateChoropleth({ counts, selectedState }: StateChorople
           width={960}
           height={500}
           className="block h-auto w-full"
+          role="img"
+          aria-label={`Map of declaration record counts per state in the current view. Highest count is ${formatNumber(maxCount)} records in one state. Equivalent values are listed in the table below.`}
           onMouseLeave={() => setHover(null)}
         >
           <Geographies geography={STATES_TOPO}>
@@ -91,8 +93,8 @@ export default function StateChoropleth({ counts, selectedState }: StateChorople
           </div>
         ) : null}
       </div>
-      <div className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500">
-        <span>0</span>
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-slate-500">
+        <span>0 records</span>
         <div className="flex overflow-hidden rounded">
           <span
             aria-hidden="true"
@@ -108,8 +110,30 @@ export default function StateChoropleth({ counts, selectedState }: StateChorople
             />
           ))}
         </div>
-        <span>{formatNumber(maxCount)}</span>
+        <span>max {formatNumber(maxCount)} records in this view</span>
       </div>
+      <details className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+        <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+          Declaration record counts by state (text table, {counts.length}{' '}
+          {counts.length === 1 ? 'state' : 'states'})
+        </summary>
+        <table className="mt-2 w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase">
+              <th scope="col" className="py-1 pr-4 font-semibold">State</th>
+              <th scope="col" className="py-1 font-semibold">Declaration records</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {counts.map((entry) => (
+              <tr key={entry.state}>
+                <td className="py-1 pr-4 text-slate-700">{entry.state}</td>
+                <td className="py-1 text-slate-700">{formatNumber(entry.count)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
     </div>
   )
 }

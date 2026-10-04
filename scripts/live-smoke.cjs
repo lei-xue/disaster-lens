@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const expectedVersion=JSON.parse(fs.readFileSync(path.join(__dirname,'..','package.json'),'utf8')).version;
 const base=process.env.BASE_URL||'http://127.0.0.1:8792/';
 const out=process.env.SCREENSHOT_DIR||path.join(process.cwd(),'docs/screenshots');
 (async()=>{
@@ -15,7 +16,7 @@ const out=process.env.SCREENSHOT_DIR||path.join(process.cwd(),'docs/screenshots'
   await page.goto(base,{waitUntil:'networkidle',timeout:60000});
   await page.getByLabel('Loaded data scope').waitFor({timeout:60000});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  assert.match(await page.getByLabel('Website build information').innerText(),/Version 0\.1\.0/);
+  assert.match(await page.getByLabel('Website build information').innerText(),new RegExp(`Version ${expectedVersion.replace(/\./g,'\\.')}`));
   const scope=await page.getByLabel('Loaded data scope').innerText();
   await page.screenshot({path:path.join(out,`dashboard-${width}.png`),fullPage:true});
   await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Explore'}).click();
