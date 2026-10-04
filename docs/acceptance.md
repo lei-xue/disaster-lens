@@ -78,3 +78,16 @@ Reproduce the added UIUX checks against a built static preview:
 ```sh
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/uiux-smoke.cjs
 ```
+
+## v0.1.2 route-loading acceptance
+
+The previously deferred route-splitting item was advanced after the user instructed continuation. Kimi K3 implemented all five lazy routes with route-local Suspense in the persistent shell. See [performance review](performance-review.md) for the original plan, actual chunk sizes and independent checks.
+
+- Entry JS: 264.98 kB minified / 84.30 kB gzip versus the prior single 902.18 kB / 277.23 kB gzip artifact. Dashboard is a separate 609.29 kB / 184.20 kB gzip chunk; its >500 kB advisory remains visible.
+- Browser requests verify non-dashboard direct entries never request the Dashboard chunk. This is not a claim of lower total Dashboard bytes or measured faster loading on every device.
+- New `scripts/lazy-smoke.cjs` passed real five-route entries, held-chunk loading status, persistent navigation/skip focus/title and cross-route focus. Re-ran UIUX synthetic checks and separate live FEMA smoke: all passed. Lint, 58 unit tests and build passed.
+- No dependency-tree, FEMA data-library, lint-configuration, factual content or route-path changes. Version is 0.1.2; commit/push and post-commit footer readback follow local verification. Production merge/deployment remains separate.
+
+```sh
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/lazy-smoke.cjs
+```
