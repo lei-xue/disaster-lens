@@ -24,7 +24,7 @@ npm run build
 npm run preview
 ```
 
-Browser regression scenarios are documented in [acceptance](docs/acceptance.md). They distinguish synthetic edge-case fixtures from actual API checks.
+Browser regression scenarios are documented in [acceptance](docs/acceptance.md). They distinguish synthetic edge-case fixtures from actual API checks. The [cross-project cache repair backlog](docs/cross-project-cache-backlog.md) records verified redundant requests, source-specific caching/privacy constraints, and the ordered repair queue; planned items are not completed fixes.
 
 ## Data and completeness
 
