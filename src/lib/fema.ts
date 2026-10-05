@@ -149,16 +149,158 @@ async function fetchPages(
   return { records: all, limitReached: true }
 }
 
-export function fetchDisasters(query: DisasterQuery, signal?: AbortSignal, request?: typeof fetch): Promise<DisasterResult> {
-  return fetchPages((top, skip) => buildDisasterQueryUrl(query, top, skip), signal, request)
+// In-flight request coalescing, keyed per transport identity so injected
+// fetch functions never share flights with each other or the global fetch.
+interface SharedFlight {
+  promise: Promise<DisasterResult>
+  controller: AbortController
+  consumers: number
+  settled: boolean
 }
 
-export async function fetchDisasterDetail(number: number, signal?: AbortSignal, request?: typeof fetch): Promise<DisasterResult> {
-  const result = await fetchPages((top, skip) => buildDisasterDetailUrl(number, top, skip), signal, request)
-  if (result.records.some((record) => record.disasterNumber !== number)) {
-    throw new FemaError('FEMA returned records for a different disaster. Please retry.')
+const flightRegistry = new WeakMap<typeof fetch, Map<string, SharedFlight>>()
+
+function flightsFor(transport: typeof fetch): Map<string, SharedFlight> {
+  let map = flightRegistry.get(transport)
+  if (!map) {
+    map = new Map()
+    flightRegistry.set(transport, map)
   }
-  return result
+  return map
+}
+
+function abortError(): Error {
+  return typeof DOMException === 'function'
+    ? new DOMException('The operation was aborted.', 'AbortError')
+    : Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' })
+}
+
+function shareFlight(
+  transport: typeof fetch,
+  key: string,
+  start: (signal: AbortSignal) => Promise<DisasterResult>,
+  signal?: AbortSignal,
+): Promise<DisasterResult> {
+  if (signal?.aborted) return Promise.reject(signal.reason ?? abortError())
+  const registry = flightsFor(transport)
+  let flight = registry.get(key)
+  if (!flight) {
+    const controller = new AbortController()
+    const newFlight: SharedFlight = {
+      promise: Promise.resolve().then(() => start(controller.signal)),
+      controller,
+      consumers: 0,
+      settled: false,
+    }
+    registry.set(key, newFlight)
+    const cleanup = () => {
+      if (registry.get(key) === newFlight) registry.delete(key)
+    }
+    newFlight.promise.then(
+      (value) => {
+        newFlight.settled = true
+        cleanup()
+        return value
+      },
+      (error: unknown) => {
+        newFlight.settled = true
+        cleanup()
+        throw error
+      },
+    ).catch(() => {
+      // Swallow the settlement-branch rejection; every consumer attaches
+      // its own handler via subscribe(). This prevents unhandled rejections
+      // after all consumers have cancelled.
+    })
+    flight = newFlight
+  }
+  return subscribe(flight, registry, key, signal)
+}
+
+function subscribe(
+  flight: SharedFlight,
+  registry: Map<string, SharedFlight>,
+  key: string,
+  signal?: AbortSignal,
+): Promise<DisasterResult> {
+  return new Promise<DisasterResult>((resolve, reject) => {
+    let done = false
+    const detach = () => {
+      signal?.removeEventListener('abort', onAbort)
+    }
+    const onAbort = () => {
+      if (done) return
+      done = true
+      detach()
+      flight.consumers -= 1
+      if (flight.consumers <= 0 && !flight.settled) {
+        // Evict before aborting so an immediate retry starts a fresh flight
+        // even if the old transport ignores the abort.
+        if (registry.get(key) === flight) registry.delete(key)
+        flight.controller.abort(signal?.reason)
+      }
+      reject(signal?.reason ?? abortError())
+    }
+    flight.consumers += 1
+    if (signal?.aborted) {
+      onAbort()
+      return
+    }
+    signal?.addEventListener('abort', onAbort, { once: true })
+    flight.promise.then(
+      (value) => {
+        if (done) return
+        done = true
+        detach()
+        flight.consumers -= 1
+        resolve(value)
+      },
+      (error: unknown) => {
+        if (done) return
+        done = true
+        detach()
+        flight.consumers -= 1
+        reject(error)
+      },
+    )
+  })
+}
+
+function queryKey(query: DisasterQuery): string {
+  return `query:${JSON.stringify([
+    String(query.startYear),
+    String(query.endYear),
+    query.state,
+    [...query.incidentTypes].sort(),
+  ])}`
+}
+
+function detailKey(number: number): string {
+  return `d:${number}`
+}
+
+export function fetchDisasters(query: DisasterQuery, signal?: AbortSignal, request?: typeof fetch): Promise<DisasterResult> {
+  // Clone synchronously so later caller mutation cannot alter key or request.
+  const snapshot: DisasterQuery = {
+    startYear: query.startYear,
+    endYear: query.endYear,
+    state: query.state,
+    incidentTypes: [...query.incidentTypes],
+  }
+  const transport = request ?? fetch
+  return shareFlight(transport, queryKey(snapshot), (upstream) =>
+    fetchPages((top, skip) => buildDisasterQueryUrl(snapshot, top, skip), upstream, transport), signal)
+}
+
+export function fetchDisasterDetail(number: number, signal?: AbortSignal, request?: typeof fetch): Promise<DisasterResult> {
+  const transport = request ?? fetch
+  return shareFlight(transport, detailKey(number), async (upstream) => {
+    const result = await fetchPages((top, skip) => buildDisasterDetailUrl(number, top, skip), upstream, transport)
+    if (result.records.some((record) => record.disasterNumber !== number)) {
+      throw new FemaError('FEMA returned records for a different disaster. Please retry.')
+    }
+    return result
+  }, signal)
 }
 
 export interface CacheEntry extends DisasterResult {

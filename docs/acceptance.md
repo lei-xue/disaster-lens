@@ -149,3 +149,22 @@ This milestone follows the approved Kimi cache/map plan and the canonical cross-
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/cache-map-smoke.cjs
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/live-cache-smoke.cjs
 ```
+
+## v0.2.2 subscriber-safe in-flight coalescing
+
+Closes the remaining DisasterLens P0 network-sharing item from v0.2.1. Kimi K3 implementation session `20261005_090329_6d01cf` and bounded correction session `20261005_090922_1a10e9` were verified from the usage ledger as actual `kimi-k3` / billed provider `custom`. The coordinator independently reviewed, integrated and exercised the artifacts.
+
+- Identical concurrent FEMA query/detail consumers share the entire validated paged result, with a registry isolated by transport identity. Structured keys preserve literal field/array boundaries, sort copied incident types, and keep query/detail namespaces separate. Caller query values are copied synchronously before deferred work and paging.
+- Each subscriber owns its cancellation. Cancelling one subscriber rejects it promptly without aborting others. The last cancellation aborts upstream and immediately removes that flight; late old completion cannot delete its replacement. Listeners and subscriber counts are released on success/failure/cancellation. Pre-aborted callers start no transport request, and ignored transport/body aborts cannot keep cancelled subscribers waiting.
+- Settled and failed flights are removed; no completed response or error is retained in this registry. Persistent snapshot TTL, force refresh, bounded paging, detail-ID validation and NWS polling/privacy remain unchanged. There is no global shared AbortController.
+- New `tests/inflight.test.ts`: **15 tests** cover complete 1,001-row paging reuse, reordered types, separate queries/transports/IDs, success/error eviction, immutable query values, detail mismatch, pre-abort, one/all cancellations, immediate retry/late cleanup, uncooperative JSON parsing and detached listeners. The initial implementation passed fourteen cases; a new comma-bearing incident-type case exposed a delimiter-key collision, which was fixed and the complete suite rerun. No regression assertion was weakened.
+- Fresh `npm ci`: passed with 0 audit findings. Full `npm test`: **114 passed, 0 failed**. Lint, production build and `git diff --check`: passed. Dependency tree and UI/source-route requirements were not changed; package/lock version is 0.2.2.
+- `scripts/live-inflight-smoke.cjs`: unmocked Node execution against official FEMA, not synthetic browser evidence. Two concurrent default-query callers shared **5** page requests at skips **0/1000/2000/3000/4000**. One caller cancelled; upstream remained active for the other, which received **5,000 declaration-area records** with `limitReached: true` (**may be incomplete**, not a complete dataset or unique-disaster total). [Captured evidence](inflight-live-evidence-v0.2.2.json).
+- `scripts/live-cache-smoke.cjs`: unmocked production-build browser replay passed again: initial **5**, Dashboard→Explore/back **0**, identical Apply **0**, full reload **0**, California selection **1** in this sample then reload **0**, independent detail **1**, detail reload **0**, forced detail refresh **1**. The applied-state tooltip count assertion passed; this remains a dated source sample, not a universal single-request guarantee.
+- Synthetic cache/map, six-route UIUX and NWS regression scripts passed, including stale/expired fallbacks, SVG keyboard controls and 200% text/page zoom. Real lazy-route/chunk checks initially timed out once during direct Explore entry; the unchanged script passed on retry. A separate official first-page connectivity check returned HTTP 200 with 1,000 rows. No synthetic data replaced the failed live attempt, and that timeout is not diagnosed as a proven application or upstream defect.
+- The Dashboard large-chunk advisory remains visible. Whole-site visual redesign, physical-device/screen-reader acceptance and other projects remain separate. No production deployment, DNS change or main-branch merge was performed; static archive/footer verification follows the release commit.
+
+```sh
+node --test tests/inflight.test.ts
+node scripts/live-inflight-smoke.cjs
+```

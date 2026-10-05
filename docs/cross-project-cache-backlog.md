@@ -1,12 +1,12 @@
 # Cross-project cache repair backlog
 
-Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is implemented and independently verified in v0.2.1. Other projects and safe in-flight request coalescing remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. Deployment remains the user's responsibility.
+Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is verified in v0.2.1, with safe in-flight request coalescing verified in v0.2.2. Other projects remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. Deployment remains the user's responsibility.
 
 ## Audited sources and evidence
 
 Remote refs were fetched without changing the other worktrees; their inspected HEAD and fetched origin/main agreed:
 
-- DisasterLens: https://github.com/lei-xue/disaster-lens, delivered feature branch at `dc72cf1`; live https://disasterlens.leixue.dev/ currently renders an older UI without the release footer/Alerts navigation. The current delivered source also has the caching defect, so updating the deployment alone does not fix it.
+- DisasterLens audit baseline: https://github.com/lei-xue/disaster-lens at `dc72cf1`; https://disasterlens.leixue.dev/ rendered an older UI without the release footer/Alerts navigation during the recorded audit. That source baseline also had the caching defect; subsequent v0.2.1/v0.2.2 repairs are documented below, not a claim of a production update.
 - Cinemate: https://github.com/lei-xue/cinema-app at `ccfe5bb`; live https://movies.leixue.dev/.
 - MindBridge: https://github.com/lei-xue/mindbridge at `7732ad3`; live https://mindbridge.leixue.dev/.
 - CharityCheck: https://github.com/lei-xue/charity-check at `5222d2e`; live https://charitycheck.leixue.dev/.
@@ -31,14 +31,14 @@ Priorities express execution order, not invented calendar deadlines. Cache durat
 - [x] Use a 24-hour historical-data freshness window, show retrieval time, provide force Refresh and Clear cached data. TTL expiry never silently presents a snapshot as fresh.
 - [x] Persist successful validated FEMA fetch results; corrupt/schema-mismatched entries, quota failures or unavailable IndexedDB degrade safely. Retain last good results and clearly identify stale/error state after failed refresh.
 - [x] Never use a capped global query as if it were a complete different state/year/type query. Preserve the 5,000-area-row safety bound and 'may be incomplete' semantics.
-- [ ] Coalesce safe identical in-flight work without allowing one consumer's navigation abort to cancel another consumer's request.
+- [x] Coalesce safe identical in-flight work without allowing one consumer's navigation abort to cancel another consumer's request. Verified in v0.2.2 with subscriber-owned cancellation, collision-safe exact keys, per-transport isolation and complete paged-result reuse.
 - [x] Keep NWS freshness separate: no historical 24-hour alert policy, no initial inferred-state request, and no claims of guaranteed realtime delivery. Explicit refresh still queries the source.
 - [x] Repair real-path activation and accessible state names; browser checks cover click/Enter/Space and path-shaped focus/selected strokes. The practical state-select equivalent remains for small states/DC and touch devices; physical-device touch acceptance is still unverified.
 - [x] Verify fresh-cache Dashboard/Explore/back, identical Apply and reload each add **0 FEMA requests**; a new uncached query makes only its required page requests, not an asserted single request. Force Refresh requests the source; failure preserves truthful previous-snapshot labels.
 
-See [v0.2.1 acceptance](acceptance.md#v021-historical-cache-and-state-map-acceptance) and [unmocked request-count evidence](cache-live-evidence-v0.2.1.json). Storage is bounded to six query snapshots plus twenty detail snapshots. Cached A/B/A selections update the last-applied pointer without changing original retrieval time. Expired Dashboard/Explore/detail snapshots survive a failed source refresh with stale labels; writes/evictions/clear are serialized and durable success waits for transaction commit. In-flight **network** coalescing remains intentionally open: no global AbortController was introduced, and completed-result cache reuse must not be confused with request sharing.
+See [v0.2.1 acceptance](acceptance.md#v021-historical-cache-and-state-map-acceptance) and [unmocked request-count evidence](cache-live-evidence-v0.2.1.json). Storage is bounded to six query snapshots plus twenty detail snapshots. Cached A/B/A selections update the last-applied pointer without changing original retrieval time. Expired Dashboard/Explore/detail snapshots survive a failed source refresh with stale labels; writes/evictions/clear are serialized and durable success waits for transaction commit. In-flight **network** coalescing is verified separately in [v0.2.2 acceptance](acceptance.md#v022-subscriber-safe-in-flight-coalescing): no global AbortController was introduced, and completed-result caching remains separate from active request sharing.
 
-The parallel Kimi K3 source/evidence review supports this direction. Its 'exactly one request' new-query criterion is corrected here because FEMA pagination can require multiple pages. A current UI error hides prior data but does not erase the stored entry; repair the display/state transition rather than falsely describing the existing in-memory data as destroyed.
+The parallel Kimi K3 source/evidence review supports this direction. Its 'exactly one request' new-query criterion is corrected here because FEMA pagination can require multiple pages. The audited baseline UI error hid prior data without erasing the stored entry; the implemented repair addressed the display/state transition rather than falsely describing the in-memory data as destroyed.
 
 ### 2. P1 — Cinemate list/search/detail result reuse
 
