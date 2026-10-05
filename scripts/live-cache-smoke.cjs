@@ -63,6 +63,6 @@ const base = process.env.BASE_URL || 'http://127.0.0.1:8792/';
     await page.waitForFunction(() => document.querySelector('article')?.textContent.includes('Fetched'));
     observe('Force detail refresh', beforeForce); assert.ok(calls.length > beforeForce);
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ evidence: 'unmocked official FEMA requests; local production build, not deployment', observations, detail4945Areas: areas, pageErrors: errors }, null, 2));
+    console.log(JSON.stringify({ evidence: 'unmocked official FEMA requests; no response interception', baseUrl: base, observations, detail4945Areas: areas, pageErrors: errors }, null, 2));
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exit(1); });

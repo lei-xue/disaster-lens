@@ -1,0 +1,29 @@
+{
+  "base": "https://disasterlens.leixue.dev/",
+  "expectedVersion": "0.2.2",
+  "expectedCommit": "3a7c225",
+  "unmocked": true,
+  "footer": "Version 0.2.2 · Built 2026-10-05 20:29 UTC · 3a7c225",
+  "fema": {
+    "initialRequests": 5,
+    "revisitAndReloadAdded": 0,
+    "snapshots": [{
+      "fetchedAt": 1791232217554,
+      "recordCount": 5000,
+      "limitReached": true,
+      "query": {"startYear": 2016, "endYear": 2026, "state": null, "incidentTypes": []}
+    }],
+    "timestampPreserved": true
+  },
+  "nws": {
+    "state": "CA",
+    "status": 200,
+    "sourceFeatureCount": 19,
+    "heading": "Alerts for California (CA) — fetched 2026-10-05 20:30 UTC",
+    "initialRequests": 1,
+    "forceRefreshAdded": 1,
+    "autoRefreshInitiallyOff": true,
+    "noDeviceLocationRequested": true
+  },
+  "pageErrors": []
+}
