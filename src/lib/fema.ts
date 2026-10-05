@@ -166,29 +166,25 @@ export interface CacheEntry extends DisasterResult {
   fetchedAt: number
 }
 
-let cache: CacheEntry | null = null
+import { syncGet, syncSet } from './disasterCache.ts'
 
 export function setCachedDisasters(
   query: DisasterQuery,
   result: DisasterResult,
 ): void {
-  cache = {
-    query: { ...query, incidentTypes: [...query.incidentTypes] },
-    records: result.records,
-    limitReached: result.limitReached,
-    fetchedAt: Date.now(),
-  }
+  syncSet(query, result, Date.now())
 }
 
 export function getCachedDisasters(): CacheEntry | null {
-  return cache
+  return syncGet()
 }
 
 export function findCachedDisasters(
   query: DisasterQuery,
 ): DisasterRecord[] | null {
-  if (cache === null || !sameQuery(cache.query, query)) return null
-  return cache.records
+  const entry = syncGet()
+  if (entry === null || !sameQuery(entry.query, query)) return null
+  return entry.records
 }
 
 export function sameQuery(a: DisasterQuery, b: DisasterQuery): boolean {

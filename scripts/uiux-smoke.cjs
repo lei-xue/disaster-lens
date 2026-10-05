@@ -153,8 +153,10 @@ const pressSkip = async (page, hash) => {
       const dash = await newPage(browser, 390);
       await dash.goto(base + '#/', { waitUntil: 'networkidle' });
       await dash.getByLabel('Loaded data scope').waitFor();
-      const map = dash.locator('[role="img"][aria-label*="Map of declaration record counts"]');
-      assert.equal(await map.count(), 1, 'map has role=img + aria-label');
+      const map = dash.locator('[role="group"][aria-label*="Map of declaration record counts"]');
+      assert.equal(await map.count(), 1, 'interactive map exposes a named group, not an image hiding controls');
+      assert.equal(await map.getByRole('button').count(), 51, 'all 50 state paths plus DC expose interactive controls');
+      assert.equal(await map.locator('[data-state="CA"]').getAttribute('role'), 'button');
       await dash.locator('details', { hasText: 'text table' }).first().locator('summary').click();
       assert.match(await dash.locator('details', { hasText: 'text table' }).first().innerText(), /CA|TX/);
       assert.match(await dash.getByText(/Highest:/).first().innerText(), /CA|TX/);

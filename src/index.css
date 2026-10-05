@@ -17,6 +17,20 @@
     border-radius: 2px;
   }
 
+  /* Map geographies: suppress the rectangular outline (path shape is irregular)
+     and use a high-contrast stroke that follows the real geography outline. */
+  .rsm-geography:focus {
+    outline: none;
+  }
+  .rsm-geography:focus-visible {
+    outline: none;
+    stroke: var(--color-blue-700);
+    stroke-width: 3px;
+  }
+  .rsm-geography:hover {
+    fill: var(--color-blue-200);
+  }
+
   /* Respect reduced-motion: no skeleton pulse, no state-by-motion transitions. */
   @media (prefers-reduced-motion: reduce) {
     .animate-pulse {

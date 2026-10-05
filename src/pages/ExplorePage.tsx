@@ -13,6 +13,11 @@ import {
   type CacheEntry,
   type DisasterQuery,
 } from '../lib/fema.ts'
+import {
+  readLastAppliedSnapshot,
+  saveQuerySnapshot,
+  syncSet,
+} from '../lib/disasterCache.ts'
 import { formatDate, formatNumber } from '../lib/format.ts'
 import { paginate, searchRecords, sortRecords, type SortKey } from '../lib/tableUtils.ts'
 
@@ -30,36 +35,39 @@ export default function ExplorePage() {
   const [cacheEntry, setCacheEntry] = useState<CacheEntry | null>(() =>
     getCachedDisasters(),
   )
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>(() =>
-    getCachedDisasters() === null ? 'loading' : 'idle',
-  )
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState('')
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('declarationDate')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(1)
   const controllerRef = useRef<AbortController | null>(null)
+  const tokenRef = useRef(0)
 
   const records = cacheEntry?.records ?? null
 
-  const load = useCallback(async () => {
-    const query: DisasterQuery = {
-      startYear: DATA_START_YEAR,
-      endYear: CURRENT_YEAR,
-      state: null,
-      incidentTypes: [],
-    }
+  const load = useCallback(async (query: DisasterQuery) => {
+    const token = ++tokenRef.current
     controllerRef.current?.abort()
     const controller = new AbortController()
     controllerRef.current = controller
     try {
       const result = await fetchDisasters(query, controller.signal)
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted || tokenRef.current !== token) return
+      const fetchedAt = Date.now()
       setCachedDisasters(query, result)
-      setCacheEntry(getCachedDisasters())
+      syncSet(query, result, fetchedAt)
+      await saveQuerySnapshot(query, result, fetchedAt)
+      if (tokenRef.current !== token) return
+      setCacheEntry({
+        ...result,
+        query: { ...query, incidentTypes: [...query.incidentTypes] },
+        fetchedAt,
+      })
       setStatus('idle')
     } catch (err) {
       if (controller.signal.aborted || (err instanceof Error && err.name === 'AbortError')) return
+      if (tokenRef.current !== token) return
       setErrorMessage(
         err instanceof FemaError
           ? err.message
@@ -72,12 +80,52 @@ export default function ExplorePage() {
   const startLoad = () => {
     setStatus('loading')
     setErrorMessage('')
-    void load()
+    void load(
+      cacheEntry?.query ?? {
+        startYear: DATA_START_YEAR,
+        endYear: CURRENT_YEAR,
+        state: null,
+        incidentTypes: [],
+      },
+    )
   }
 
   useEffect(() => {
-    if (getCachedDisasters() === null) void load()
-    return () => controllerRef.current?.abort()
+    let cancelled = false
+    const token = ++tokenRef.current
+    void (async () => {
+      const last = await readLastAppliedSnapshot()
+      if (cancelled || tokenRef.current !== token) return
+      if (last !== null) {
+        const entry: CacheEntry = {
+          query: last.query,
+          records: last.records,
+          limitReached: last.limitReached,
+          fetchedAt: last.fetchedAt,
+        }
+        syncSet(last.query, last, last.fetchedAt)
+        setCacheEntry(entry)
+        if (!last.stale) {
+          setStatus('idle')
+          return
+        }
+        setStatus('loading')
+        await load(last.query)
+        return
+      }
+      setStatus('loading')
+      await load({
+        startYear: DATA_START_YEAR,
+        endYear: CURRENT_YEAR,
+        state: null,
+        incidentTypes: [],
+      })
+    })()
+    return () => {
+      cancelled = true
+      tokenRef.current += 1
+      controllerRef.current?.abort()
+    }
   }, [load])
 
   const visibleRows = useMemo(() => {
@@ -113,6 +161,12 @@ export default function ExplorePage() {
         </p>
       </div>
 
+      {cacheEntry && (
+        <p className="text-sm text-slate-600">
+          {status === 'error' ? 'Stale snapshot — ' : status === 'loading' ? 'Updating snapshot — ' : 'Snapshot — '}
+          fetched {new Date(cacheEntry.fetchedAt).toISOString().replace('T', ' ').slice(0, 19)} UTC.
+        </p>
+      )}
       {status === 'error' ? (
         <ErrorBanner message={errorMessage} onRetry={startLoad} />
       ) : null}

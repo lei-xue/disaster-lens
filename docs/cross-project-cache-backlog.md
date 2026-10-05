@@ -1,6 +1,6 @@
 # Cross-project cache repair backlog
 
-Status: audit complete for the scopes below; repairs scheduled, not yet implemented. Recorded at 2026-10-05T07:32:33Z after the user asked whether the same unnecessary-refetch problem affects earlier projects and requested including affected scopes in the repair queue. This is the canonical cross-project cache queue for this continuation, not a deployment or completion claim. Deployment remains the user's responsibility.
+Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is implemented and independently verified in v0.2.1. Other projects and safe in-flight request coalescing remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. Deployment remains the user's responsibility.
 
 ## Audited sources and evidence
 
@@ -26,15 +26,17 @@ Priorities express execution order, not invented calendar deadlines. Cache durat
 
 ### 1. P0 — DisasterLens historical snapshots and map correctness
 
-- [ ] Add bounded, schema-versioned persistent browser caching for successful exact FEMA query snapshots and independent detail IDs, including records, query, fetchedAt and limitReached together.
-- [ ] Check fresh snapshots on mount, repeated Apply/Reset, route return and reload; restore the successful applied query without relabeling data from draft controls.
-- [ ] Start with a proposed 24-hour historical-data TTL, show retrieval time, provide force Refresh and Clear cached data. TTL expiry must not silently present a snapshot as fresh.
-- [ ] Write only a fully validated successful fetch; corrupt/schema-mismatched entries, quota failures or unavailable IndexedDB must degrade safely. Retain last good results and clearly identify stale/error state after failed refresh.
-- [ ] Never use a capped global query as if it were a complete different state/year/type query. Preserve the 5,000-area-row safety bound and 'may be incomplete' semantics.
+- [x] Add bounded, schema-versioned persistent browser caching for successful exact FEMA query snapshots and independent detail IDs, including records, query, fetchedAt and limitReached together.
+- [x] Check fresh snapshots on mount, repeated Apply/Reset, route return and reload; restore the successful applied query without relabeling data from draft controls.
+- [x] Use a 24-hour historical-data freshness window, show retrieval time, provide force Refresh and Clear cached data. TTL expiry never silently presents a snapshot as fresh.
+- [x] Persist successful validated FEMA fetch results; corrupt/schema-mismatched entries, quota failures or unavailable IndexedDB degrade safely. Retain last good results and clearly identify stale/error state after failed refresh.
+- [x] Never use a capped global query as if it were a complete different state/year/type query. Preserve the 5,000-area-row safety bound and 'may be incomplete' semantics.
 - [ ] Coalesce safe identical in-flight work without allowing one consumer's navigation abort to cancel another consumer's request.
-- [ ] Keep NWS freshness separate: no historical 24-hour alert policy, no initial inferred-state request, and no claims of guaranteed realtime delivery. Explicit refresh still queries the source.
-- [ ] Repair map click/touch/Enter/Space selection and accessible state names. Preserve real geographic paths; use path-shaped focus/selected strokes rather than rectangular SVG bounding-box outlines. Keep a practical state-select equivalent for small states/DC.
-- [ ] Verify fresh-cache Dashboard/Explore/back, identical Apply and reload each add **0 FEMA requests**; a new uncached query makes only its required page requests, not an asserted single request. Force Refresh must request the source; failure must preserve truthful previous-snapshot labels.
+- [x] Keep NWS freshness separate: no historical 24-hour alert policy, no initial inferred-state request, and no claims of guaranteed realtime delivery. Explicit refresh still queries the source.
+- [x] Repair real-path activation and accessible state names; browser checks cover click/Enter/Space and path-shaped focus/selected strokes. The practical state-select equivalent remains for small states/DC and touch devices; physical-device touch acceptance is still unverified.
+- [x] Verify fresh-cache Dashboard/Explore/back, identical Apply and reload each add **0 FEMA requests**; a new uncached query makes only its required page requests, not an asserted single request. Force Refresh requests the source; failure preserves truthful previous-snapshot labels.
+
+See [v0.2.1 acceptance](acceptance.md#v021-historical-cache-and-state-map-acceptance) and [unmocked request-count evidence](cache-live-evidence-v0.2.1.json). Storage is bounded to six query snapshots plus twenty detail snapshots. Cached A/B/A selections update the last-applied pointer without changing original retrieval time. Expired Dashboard/Explore/detail snapshots survive a failed source refresh with stale labels; writes/evictions/clear are serialized and durable success waits for transaction commit. In-flight **network** coalescing remains intentionally open: no global AbortController was introduced, and completed-result cache reuse must not be confused with request sharing.
 
 The parallel Kimi K3 source/evidence review supports this direction. Its 'exactly one request' new-query criterion is corrected here because FEMA pagination can require multiple pages. A current UI error hides prior data but does not erase the stored entry; repair the display/state transition rather than falsely describing the existing in-memory data as destroyed.
 

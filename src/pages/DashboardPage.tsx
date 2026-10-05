@@ -44,6 +44,15 @@ import {
   type CacheEntry,
   type DisasterQuery,
 } from '../lib/fema.ts'
+import {
+  clearCache,
+  markQueryApplied,
+  readLastAppliedSnapshot,
+  readQuerySnapshot,
+  saveQuerySnapshot,
+  syncSet,
+  type QuerySnapshot,
+} from '../lib/disasterCache.ts'
 import { formatNumber, formatShare } from '../lib/format.ts'
 import type { DisasterRecord } from '../lib/types.ts'
 
@@ -77,6 +86,26 @@ function pieDataFor(records: DisasterRecord[]) {
   ]
 }
 
+function toEntry(snapshot: QuerySnapshot): CacheEntry {
+  return {
+    query: snapshot.query,
+    records: snapshot.records,
+    limitReached: snapshot.limitReached,
+    fetchedAt: snapshot.fetchedAt,
+  }
+}
+
+function formatFetchedAt(fetchedAt: number): string {
+  return `${new Date(fetchedAt).toISOString().replace('T', ' ').slice(0, 19)} UTC`
+}
+
+const DEFAULT_QUERY: DisasterQuery = {
+  startYear: DATA_START_YEAR,
+  endYear: CURRENT_YEAR,
+  state: null,
+  incidentTypes: [],
+}
+
 export default function DashboardPage() {
   const [startYear, setStartYear] = useState(DATA_START_YEAR)
   const [endYear, setEndYear] = useState(CURRENT_YEAR)
@@ -85,45 +114,122 @@ export default function DashboardPage() {
   const [entry, setEntry] = useState<CacheEntry | null>(null)
   const records = entry?.records ?? null
   const [status, setStatus] = useState<Status>('loading')
+  const [isStale, setIsStale] = useState(false)
+  const [isDurable, setIsDurable] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [failedScope, setFailedScope] = useState('')
   const controllerRef = useRef<AbortController | null>(null)
+  const tokenRef = useRef(0)
+  const failedQueryRef = useRef<DisasterQuery | null>(null)
 
-  const load = useCallback(async (query: DisasterQuery) => {
-    controllerRef.current?.abort()
-    const controller = new AbortController()
-    controllerRef.current = controller
-    try {
-      const result = await fetchDisasters(query, controller.signal)
-      if (controller.signal.aborted) return
-      setCachedDisasters(query, result)
-      setEntry({ ...result, query: { ...query, incidentTypes: [...query.incidentTypes] }, fetchedAt: Date.now() })
-      setStatus('success')
-    } catch (err) {
-      if (controller.signal.aborted || (err instanceof Error && err.name === 'AbortError')) return
-      setErrorMessage(
-        err instanceof FemaError
-          ? err.message
-          : 'Something went wrong while loading data from FEMA.',
-      )
-      setStatus('error')
-    }
+  const syncControls = useCallback((query: DisasterQuery) => {
+    setStartYear(query.startYear)
+    setEndYear(query.endYear)
+    setStateCode(query.state ?? '')
+    setSelectedTypes([...query.incidentTypes])
   }, [])
 
-  const startLoad = (query: DisasterQuery) => {
+  const applySnapshot = useCallback(
+    (token: number, snapshot: QuerySnapshot) => {
+      if (tokenRef.current !== token) return false
+      const cacheEntry = toEntry(snapshot)
+      syncSet(cacheEntry.query, snapshot, snapshot.fetchedAt)
+      setEntry(cacheEntry)
+      setIsStale(snapshot.stale)
+      setIsDurable(snapshot.durable)
+      setStatus('success')
+      setErrorMessage('')
+      setFailedScope('')
+      return true
+    },
+    [],
+  )
+
+  const load = useCallback(
+    async (query: DisasterQuery, options: { force?: boolean; syncDraft?: boolean } = {}) => {
+      const token = ++tokenRef.current
+      controllerRef.current?.abort()
+      const controller = new AbortController()
+      controllerRef.current = controller
+
+      try {
+        if (!options.force) {
+          const snapshot = await readQuerySnapshot(query)
+          if (tokenRef.current !== token || controller.signal.aborted) return
+          if (snapshot !== null && !snapshot.stale) {
+            const marked = await markQueryApplied(query)
+            if (tokenRef.current !== token || controller.signal.aborted) return
+            applySnapshot(token, { ...snapshot, durable: snapshot.durable && marked })
+            if (options.syncDraft) syncControls(query)
+            return
+          }
+        }
+        const result = await fetchDisasters(query, controller.signal)
+        if (controller.signal.aborted || tokenRef.current !== token) return
+        const fetchedAt = Date.now()
+        setCachedDisasters(query, result)
+        syncSet({ ...query, incidentTypes: [...query.incidentTypes] }, result, fetchedAt)
+        const saved = await saveQuerySnapshot(query, result, fetchedAt)
+        if (tokenRef.current !== token) return
+        setEntry({
+          ...result,
+          query: { ...query, incidentTypes: [...query.incidentTypes] },
+          fetchedAt,
+        })
+        setIsStale(false)
+        setIsDurable(saved)
+        setStatus('success')
+        setErrorMessage('')
+        setFailedScope('')
+        if (options.syncDraft) syncControls(query)
+      } catch (err) {
+        if (controller.signal.aborted || (err instanceof Error && err.name === 'AbortError')) return
+        if (tokenRef.current !== token) return
+        setIsStale(true)
+        setErrorMessage(
+          err instanceof FemaError
+            ? err.message
+            : 'Something went wrong while loading data from FEMA.',
+        )
+        failedQueryRef.current = { ...query, incidentTypes: [...query.incidentTypes] }
+        setFailedScope(
+          `${query.state || 'All states'} · ${query.startYear}–${query.endYear} · ${
+            query.incidentTypes.length ? query.incidentTypes.join(', ') : 'All incident types'
+          }`,
+        )
+        setStatus('error')
+      }
+    },
+    [applySnapshot, syncControls],
+  )
+
+  const startLoad = (query: DisasterQuery, options?: { force?: boolean; syncDraft?: boolean }) => {
     setStatus('loading')
     setErrorMessage('')
-    void load(query)
+    void load(query, options)
   }
 
   useEffect(() => {
-    void load({
-      startYear: DATA_START_YEAR,
-      endYear: CURRENT_YEAR,
-      state: null,
-      incidentTypes: [],
-    })
-    return () => controllerRef.current?.abort()
-  }, [load])
+    let cancelled = false
+    const token = ++tokenRef.current
+    const restore = async () => {
+      const last = await readLastAppliedSnapshot()
+      if (cancelled || tokenRef.current !== token) return
+      if (last !== null) {
+        const applied = applySnapshot(token, last)
+        syncControls(last.query)
+        if (applied && !last.stale) return
+      }
+      setStatus('loading')
+      void load(last?.query ?? DEFAULT_QUERY, { syncDraft: true })
+    }
+    void restore()
+    return () => {
+      cancelled = true
+      tokenRef.current += 1
+      controllerRef.current?.abort()
+    }
+  }, [applySnapshot, load, syncControls])
 
   const applyFilters = () => {
     const from = Math.min(startYear, endYear)
@@ -159,8 +265,42 @@ export default function DashboardPage() {
     )
   }
 
+  const refreshData = () => {
+    if (entry !== null) startLoad(entry.query, { force: true })
+  }
+
+  const clearCachedData = () => {
+    const token = ++tokenRef.current
+    controllerRef.current?.abort()
+    const hadEntry = entry !== null
+    void clearCache()
+      .then(() => {
+        if (tokenRef.current !== token) return
+        setIsDurable(false)
+        if (hadEntry) {
+          setStatus('success')
+          setErrorMessage('')
+          setFailedScope('')
+        } else {
+          setStatus('error')
+          setErrorMessage('No cached data remains. Run a query to load fresh results.')
+        }
+      })
+      .catch(() => {
+        if (tokenRef.current !== token) return
+        setStatus(hadEntry ? 'success' : 'error')
+      })
+  }
+
+  const selectMapState = (postal: string) => {
+    const baseQuery = entry?.query ?? DEFAULT_QUERY
+    const nextQuery = { ...baseQuery, incidentTypes: [...baseQuery.incidentTypes], state: postal }
+    syncControls(nextQuery)
+    startLoad(nextQuery, { syncDraft: true })
+  }
+
   const years = yearOptions()
-  const hasData = status !== 'error' && records !== null && records.length > 0
+  const hasData = records !== null && records.length > 0
   const allStateCounts = hasData ? countByState(records) : []
   const stateData = allStateCounts.slice(0, 15)
   const yearData = hasData ? countByYear(records) : []
@@ -266,6 +406,21 @@ export default function DashboardPage() {
             >
               Reset
             </button>
+            <button
+              type="button"
+              onClick={refreshData}
+              disabled={entry === null}
+              className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            >
+              Refresh data
+            </button>
+            <button
+              type="button"
+              onClick={clearCachedData}
+              className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            >
+              Clear cached data
+            </button>
           </div>
         </div>
         <fieldset className="mt-4">
@@ -302,7 +457,25 @@ export default function DashboardPage() {
       ) : null}
 
       {status === 'error' ? (
-        <ErrorBanner message={errorMessage} onRetry={applyFilters} />
+        <>
+          <ErrorBanner
+            message={errorMessage}
+            onRetry={() => startLoad(failedQueryRef.current ?? entry?.query ?? DEFAULT_QUERY, { force: true })}
+          />
+          {records !== null ? (
+            <p role="note" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              Refresh failed for {failedScope}. Previous snapshot remains below.
+            </p>
+          ) : null}
+        </>
+      ) : null}
+
+      {entry !== null ? (
+        <p className="text-xs text-slate-500">
+          Fetched {formatFetchedAt(entry.fetchedAt)} ·{' '}
+          {isStale ? 'stale snapshot; update needed' : 'fresh'} ·{' '}
+          {isDurable ? 'cached' : 'currently loaded, not persisted'}
+        </p>
       ) : null}
 
       {status === 'loading' && records === null ? <DashboardSkeleton /> : null}
@@ -356,9 +529,9 @@ export default function DashboardPage() {
 
           <ChartCard
             title="Declaration records map"
-            subtitle="County/area declaration records per state in the current view (not unique disasters); hover a state or open the text table for values"
+            subtitle="County/area declaration records in the loaded snapshot (not unique disasters); select a state to filter or open the text table for values"
           >
-            <StateChoropleth counts={allStateCounts} selectedState={appliedState} />
+            <StateChoropleth counts={allStateCounts} selectedState={appliedState} onSelectState={selectMapState} />
           </ChartCard>
 
           <ChartCard
