@@ -1,6 +1,6 @@
 # Cross-project cache repair backlog
 
-Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is verified in v0.2.1, with safe in-flight request coalescing verified in v0.2.2. Other projects remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. Deployment remains the user's responsibility.
+Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is verified in v0.2.1, with safe in-flight request coalescing verified in v0.2.2. Cinemate P1 is verified locally in v0.1.2, committed as `4b9555f04ffbb4bf305293ae2cad6a12a0109e34`; CharityCheck and MindBridge remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. Cinemate has not been pushed or deployed. Deployment remains the user's responsibility.
 
 ## Audited sources and evidence
 
@@ -42,11 +42,13 @@ The parallel Kimi K3 source/evidence review supports this direction. Its 'exactl
 
 ### 2. P1 — Cinemate list/search/detail result reuse
 
-- [ ] Add a bounded result cache keyed by actual endpoint, submitted search, page and applicable locale/filter parameters; do not persist API keys as cache-key or result metadata.
-- [ ] Reuse recent successful lists when switching categories/back and successful movie details on revisit. Cache movie results separately from theme settings and image HTTP caching.
-- [ ] Propose short list/search freshness (e.g. 15 minutes) and longer detail freshness (e.g. 6 hours); label aged responses and retain explicit force-refresh/retry behavior.
-- [ ] Cache validated successes only, preserve rapid-query cancellation guards and handle malformed storage/quota gracefully. Do not treat failed or partial responses as successful cached results.
-- [ ] Verify Home→Popular→Home→Popular adds no result API requests on fresh revisits, and repeat the test after a reload if browser persistence is adopted. Verify cached detail revisits and forced refresh separately.
+- [x] Add a bounded result cache keyed by actual endpoint, submitted search, page and applicable locale/filter parameters; do not persist API keys as cache-key or result metadata. Implemented a versioned 40-entry memory-only LRU; unknown parameters bypass caching.
+- [x] Reuse recent successful lists when switching categories/back and successful movie details on revisit. Cache movie results separately from theme settings and image HTTP caching.
+- [x] Adopt 15-minute list/search and 6-hour detail freshness for this gate; preserve original retrieval time, label stale fallback and retain explicit force-refresh/retry behavior.
+- [x] Cache validated successes only, preserve rapid-query cancellation guards and reject partial/failed responses. Browser persistence was deliberately not adopted, so storage corruption/quota handling is not applicable and searches do not survive reload.
+- [x] Verify Home→Popular→Home→Popular and detail revisits add 0 result API requests against both synthetic replay and unmocked TMDB; explicit real detail refresh adds 1. Synthetic search reuse, refresh failures, timestamp retention, retries and 320/390/1440px geometry also pass.
+
+Evidence: Cinemate `docs/cache-acceptance-v0.1.2.md`; clean install, 61/61 Jest tests, lint, optimized production build and 112/112 metadata checks passed. This is local artifact acceptance, not a claim that `https://movies.leixue.dev/` has been updated.
 
 ### 3. P2 — CharityCheck explicit live lookup and source-page reuse
 
