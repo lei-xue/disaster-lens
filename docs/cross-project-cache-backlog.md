@@ -1,6 +1,6 @@
 # Cross-project cache repair backlog
 
-Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is verified in v0.2.1, with safe in-flight request coalescing verified in v0.2.2. Cinemate P1 is verified locally in v0.1.2, committed as `4b9555f04ffbb4bf305293ae2cad6a12a0109e34`; CharityCheck and MindBridge remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. The user subsequently authorized pushing all verified changes for inspection. Publication is tracked separately from local acceptance; no production deployment is claimed here. Deployment remains the user's responsibility.
+Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is verified in v0.2.1, with safe in-flight request coalescing verified in v0.2.2. Cinemate P1 is verified in v0.1.2 (`4b9555f04ffbb4bf305293ae2cad6a12a0109e34`) and CharityCheck P2 in v0.0.2 (`65b4a9b3249a59c3b054ee7a376edf3151222d51`), both pushed to their repair branches and read back exactly; MindBridge remains queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. The user subsequently authorized pushing all verified changes for inspection. Publication is tracked separately from local acceptance; no production deployment is claimed here. Deployment remains the user's responsibility.
 
 ## Audited sources and evidence
 
@@ -52,12 +52,14 @@ Evidence: Cinemate `docs/cache-acceptance-v0.1.2.md`; clean install, 61/61 Jest 
 
 ### 3. P2 — CharityCheck explicit live lookup and source-page reuse
 
-- [ ] Keep existing bundled curated search/filter/pagination local; do not add a new fetch pipeline to it.
-- [ ] Cache validated live lookup pages by submitted EIN/name plus source page; reuse successful identical submissions and previously visited source pages, with bounded storage and visible retrieval time.
-- [ ] Propose 15-minute application freshness initially; any change to Worker no-store/privacy policy requires a separate deliberate review, not a blanket CDN override.
-- [ ] Preserve exact EIN validation, source-reported pagination/counts, empty/error meanings and latest-query guards. Retry/Refresh can explicitly bypass cache.
-- [ ] A cached ProPublica result is **not current IRS verification**, tax-exempt-status proof, or a live donation-eligibility guarantee. Keep that distinction visible.
-- [ ] Verify repeated identical successful lookup/page revisits add 0 requests within freshness; explicit refresh, invalid identifiers and obsolete responses remain correct.
+- [x] Keep existing bundled curated search/filter/pagination local; the 500-record dataset and local pipeline are unchanged. Current local paging/focus regression passes 10/10, with typing adding 0 remote requests.
+- [x] Cache validated live lookup pages by exact submitted EIN/name plus source page in a 40-entry memory-only LRU, with visible original retrieval time. Reload clears the application cache.
+- [x] Adopt 15-minute application freshness for this gate; Worker/no-store/privacy/observability policy is unchanged. Unmocked response readback confirms `Cache-Control: no-store`.
+- [x] Preserve exact EIN validation, source-reported pagination/counts, empty/error meanings and latest-query guards. Retry/Refresh bypass cache, and Retry stays on the failed source page rather than incorrectly restarting page zero.
+- [x] Keep visible that neither fresh nor cached ProPublica data is current IRS verification, tax-exempt-status proof, or a donation-eligibility guarantee; disclose that recent submissions may be reused without resending.
+- [x] Verify real and synthetic repeated lookup/source-page revisits add 0 requests; forced real refresh adds 1. Expiry, failed refresh, cancelled obsolete responses, cached empty/error distinction, strict invalid-input 0-request behavior and 320/390/1440px geometry pass.
+
+Evidence: CharityCheck v0.0.2, commit `65b4a9b3249a59c3b054ee7a376edf3151222d51`, pushed to `fix/charitycheck-live-cache` and read back exactly. Clean install, 101/101 Node tests, lint, TypeScript/Vite production build and portable cache/paging browser regressions passed; `docs/cache-acceptance-v0.0.2.md` records the full evidence. GitHub's exact-commit Cloudflare Pages check succeeded; its preview footer reads v0.0.2 / `65b4a9b3`. The production hostname still reads v0.0.1 / `5222d2e3`. The temporary Pages preview Origin receives Worker HTTP 403 under the existing allowlist; no privacy/origin policy was loosened. Full real lookup acceptance used the already allowed local origin `http://127.0.0.1:4188`. Pushing the repair branch is not a claim of main-branch integration or a production-host update.
 
 ### 4. P2 — MindBridge LA live directory only, privacy-first
 
