@@ -1,6 +1,6 @@
 # Cross-project cache repair backlog
 
-Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is verified in v0.2.1, with safe in-flight request coalescing verified in v0.2.2. Cinemate P1 is verified locally in v0.1.2, committed as `4b9555f04ffbb4bf305293ae2cad6a12a0109e34`; CharityCheck and MindBridge remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. Cinemate has not been pushed or deployed. Deployment remains the user's responsibility.
+Status: audited scopes recorded at 2026-10-05T07:32:33Z; the DisasterLens exact-snapshot/cache-map milestone is verified in v0.2.1, with safe in-flight request coalescing verified in v0.2.2. Cinemate P1 is verified locally in v0.1.2, committed as `4b9555f04ffbb4bf305293ae2cad6a12a0109e34`; CharityCheck and MindBridge remain queued. This is the canonical cross-project cache queue for this continuation, not a deployment or whole-roadmap completion claim. The user subsequently authorized pushing all verified changes for inspection. Publication is tracked separately from local acceptance; no production deployment is claimed here. Deployment remains the user's responsibility.
 
 ## Audited sources and evidence
 
