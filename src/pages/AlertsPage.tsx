@@ -35,8 +35,8 @@ function formatTimestamp(value: string | null): string {
 
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
-    <p className="min-w-0 text-sm text-slate-700 [overflow-wrap:anywhere]">
-      <span className="font-semibold text-slate-900">{label}: </span>
+    <p className="min-w-0 text-sm leading-snug text-[var(--dl-ink-soft)] [overflow-wrap:anywhere]">
+      <span className="font-semibold text-[var(--dl-ink)]">{label}: </span>
       {value ?? 'Not provided'}
     </p>
   )
@@ -46,53 +46,58 @@ function AlertCard({ record, nowMs }: { record: AlertRecord; nowMs: number }) {
   const endMs = getAlertEndMs(record)
   const expired = endMs !== null && endMs <= nowMs
   return (
-    <li className="min-w-0 rounded-lg border border-slate-200 bg-white p-4">
-      <div className="min-w-0">
-        <h3 className="text-base font-semibold text-slate-900 [overflow-wrap:anywhere]">
-          {record.event}
-        </h3>
-        {record.headline !== null ? (
-          <p className="mt-1 text-sm text-slate-700 [overflow-wrap:anywhere]">
-            {record.headline}
-          </p>
-        ) : null}
+    <li className="dl-card min-w-0 border-l-4 border-l-[var(--dl-teal)]">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="min-w-0">
+          <h3 className="text-base font-bold leading-snug text-[var(--dl-navy-deep)] [overflow-wrap:anywhere]">
+            {record.event}
+          </h3>
+          {record.headline !== null ? (
+            <p className="mt-1 text-sm leading-snug text-[var(--dl-ink-soft)] [overflow-wrap:anywhere]">
+              {record.headline}
+            </p>
+          ) : null}
+        </div>
+        <span className="shrink-0 rounded-full border border-[var(--dl-line)] bg-[var(--dl-paper)] px-2.5 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-[var(--dl-teal)] [overflow-wrap:anywhere]">
+          {record.severity ?? 'Severity unknown'}
+        </span>
       </div>
 
       {expired ? (
-        <p className="mt-2 rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700">
+        <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900">
           Expired since retrieval — not a current warning.
         </p>
       ) : null}
 
-      <div className="mt-3 grid min-w-0 gap-1 [overflow-wrap:anywhere]">
+      <div className="mt-3 grid min-w-0 gap-x-6 gap-y-1.5 border-t border-[var(--dl-line)] pt-3 sm:grid-cols-2 [overflow-wrap:anywhere]">
         <Field label="Area" value={record.areaDesc} />
         <Field label="Sender" value={record.senderName} />
         <Field label="Severity" value={record.severity} />
         <Field label="Urgency" value={record.urgency} />
         <Field label="Certainty" value={record.certainty} />
-        <p className="text-sm text-slate-700">
-          <span className="font-semibold text-slate-900">Sent: </span>
+        <p className="text-sm leading-snug text-[var(--dl-ink-soft)]">
+          <span className="font-semibold text-[var(--dl-ink)]">Sent: </span>
           {formatTimestamp(record.sent)}
         </p>
-        <p className="text-sm text-slate-700">
-          <span className="font-semibold text-slate-900">Expires: </span>
+        <p className="text-sm leading-snug text-[var(--dl-ink-soft)]">
+          <span className="font-semibold text-[var(--dl-ink)]">Expires: </span>
           {formatTimestamp(record.expires)}
         </p>
-        <p className="text-sm text-slate-700">
-          <span className="font-semibold text-slate-900">Ends: </span>
+        <p className="text-sm leading-snug text-[var(--dl-ink-soft)]">
+          <span className="font-semibold text-[var(--dl-ink)]">Ends: </span>
           {formatTimestamp(record.ends)}
         </p>
-        <p className="text-sm text-slate-700">
-          <span className="font-semibold text-slate-900">End of validity: </span>
+        <p className="text-sm leading-snug text-[var(--dl-ink-soft)]">
+          <span className="font-semibold text-[var(--dl-ink)]">End of validity: </span>
           {endMs === null ? 'Unknown' : formatUtc(endMs)}
         </p>
       </div>
 
-      <details className="group mt-3">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-slate-800 marker:hidden hover:text-blue-700 [&::-webkit-details-marker]:hidden">
+      <details className="group mt-3 border-t border-[var(--dl-line)] pt-2">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-[var(--dl-ink)] marker:hidden hover:text-[var(--dl-teal)] [&::-webkit-details-marker]:hidden">
           <span
             aria-hidden="true"
-            className="mr-1.5 inline-block text-blue-700 transition-transform motion-reduce:transition-none group-open:rotate-90"
+            className="mr-1.5 inline-block text-[var(--dl-teal)] transition-transform motion-reduce:transition-none group-open:rotate-90"
           >
             ▸
           </span>
@@ -100,14 +105,14 @@ function AlertCard({ record, nowMs }: { record: AlertRecord; nowMs: number }) {
         </summary>
         <div className="mt-2 space-y-3 pl-5">
           <div>
-            <p className="text-sm font-semibold text-slate-900">Description</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 [overflow-wrap:anywhere]">
+            <p className="text-sm font-semibold text-[var(--dl-ink)]">Description</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--dl-ink-soft)] [overflow-wrap:anywhere]">
               {record.description ?? 'Not provided'}
             </p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">Instruction</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 [overflow-wrap:anywhere]">
+            <p className="text-sm font-semibold text-[var(--dl-ink)]">Instruction</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--dl-ink-soft)] [overflow-wrap:anywhere]">
               {record.instruction ?? 'Not provided'}
             </p>
           </div>
@@ -115,9 +120,9 @@ function AlertCard({ record, nowMs }: { record: AlertRecord; nowMs: number }) {
       </details>
 
       {record.sourceUrl !== null ? (
-        <p className="mt-3">
+        <p className="mt-3 border-t border-[var(--dl-line)] pt-2">
           <a
-            className="inline-flex min-h-11 items-center text-sm font-medium text-blue-700 hover:underline [overflow-wrap:anywhere]"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--dl-navy)] underline decoration-[var(--dl-teal)] underline-offset-4 hover:text-[var(--dl-teal)] [overflow-wrap:anywhere]"
             href={record.sourceUrl}
             rel="noreferrer"
             target="_blank"
@@ -246,26 +251,24 @@ export default function AlertsPage() {
     snapshot !== null && draftArea !== '' && draftArea !== snapshot.area
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
+    <div className="dl-page">
+      <header>
+        <p className="dl-kicker">Live source · api.weather.gov</p>
+        <h1 className="dl-page-title mt-1 [overflow-wrap:anywhere]">
           Current weather alerts
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="dl-page-lede">
           Active alerts published by the U.S. National Weather Service for a
           state or territory you choose. Nothing is loaded until you ask.
         </p>
-      </div>
+      </header>
 
-      <form
-        onSubmit={onSubmit}
-        className="rounded-lg border border-slate-200 bg-white p-4"
-      >
+      <form onSubmit={onSubmit} className="dl-card">
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-0 w-full flex-1">
             <label
               htmlFor="alerts-area"
-              className="block text-sm font-semibold text-slate-900"
+              className="block text-sm font-semibold text-[var(--dl-ink)]"
             >
               State or territory
             </label>
@@ -273,7 +276,7 @@ export default function AlertsPage() {
               id="alerts-area"
               value={draftArea}
               onChange={(event) => setDraftArea(event.target.value)}
-              className="mt-1 min-h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-900"
+              className="mt-1 min-h-11 w-full min-w-0 rounded-md border border-[var(--dl-line)] bg-[var(--dl-surface)] px-3 py-2 text-base text-[var(--dl-ink)] focus:border-[var(--dl-navy)] focus:outline-none"
             >
               <option value="">Select a state or territory…</option>
               {US_STATES.map((state) => (
@@ -286,7 +289,7 @@ export default function AlertsPage() {
           <button
             type="submit"
             disabled={draftArea === ''}
-            className="min-h-11 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="min-h-11 rounded-md bg-[var(--dl-navy)] px-4 py-2 text-sm font-semibold text-[var(--dl-surface)] hover:bg-[var(--dl-navy-deep)] disabled:cursor-not-allowed disabled:bg-[var(--dl-line)] disabled:text-[var(--dl-ink-soft)]"
           >
             Load alerts
           </button>
@@ -295,13 +298,13 @@ export default function AlertsPage() {
               type="button"
               disabled={isLoading}
               onClick={() => load(snapshot.area)}
-              className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+              className="min-h-11 rounded-md border border-[var(--dl-navy)] bg-[var(--dl-surface)] px-4 py-2 text-sm font-semibold text-[var(--dl-navy)] hover:bg-[var(--dl-paper)] disabled:cursor-not-allowed disabled:border-[var(--dl-line)] disabled:text-[var(--dl-ink-soft)]"
             >
               Refresh alerts
             </button>
           ) : null}
         </div>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+        <p className="mt-3 border-t border-[var(--dl-line)] pt-3 text-sm leading-relaxed text-[var(--dl-ink-soft)]">
           Loads current alerts directly from the U.S. National Weather Service
           (api.weather.gov). The query includes your selected state/territory;
           NWS also receives normal connection information such as your IP
@@ -314,16 +317,16 @@ export default function AlertsPage() {
       </form>
 
       {snapshot !== null ? (
-        <section aria-label="Loaded alerts">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <h2 className="text-lg font-semibold text-slate-900">
+        <section aria-label="Loaded alerts" className="dl-card">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--dl-line)] pb-3">
+            <h2 className="text-base font-bold text-[var(--dl-navy-deep)]">
               Alerts for {stateName(snapshot.area)} ({snapshot.area}) — fetched{' '}
               {formatUtc(snapshot.fetchedAt)}
             </h2>
             {isRefreshing ? (
               <p
                 role="status"
-                className="rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-900"
+                className="rounded-full bg-[var(--dl-teal)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--dl-surface)]"
               >
                 Updating…
               </p>
@@ -340,7 +343,7 @@ export default function AlertsPage() {
           </div>
 
           {draftDiffers ? (
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-[var(--dl-ink-soft)]">
               Showing results for {stateName(snapshot.area)} ({snapshot.area});
               selection changed to {stateName(draftArea)} ({draftArea}) — press
               “Load alerts” to apply.
@@ -358,7 +361,7 @@ export default function AlertsPage() {
             </p>
           ) : null}
 
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-[var(--dl-ink-soft)]">
             {snapshot.result.records.length}{' '}
             {snapshot.result.records.length === 1 ? 'alert' : 'alerts'} in the
             snapshot fetched at {formatUtc(snapshot.fetchedAt)} — a record
@@ -366,7 +369,7 @@ export default function AlertsPage() {
           </p>
 
           {snapshot.result.records.length === 0 ? (
-            <p className="mt-3 rounded-md border border-slate-200 bg-white p-4 text-sm text-slate-700">
+            <p className="mt-3 rounded-md border border-[var(--dl-line)] bg-[var(--dl-paper)] p-4 text-sm text-[var(--dl-ink-soft)]">
               No active alerts were returned by NWS for{' '}
               {stateName(snapshot.area)} ({snapshot.area}) in this snapshot.
               This does not mean there is no danger — always follow local
@@ -380,17 +383,17 @@ export default function AlertsPage() {
             </ul>
           )}
 
-          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
-            <label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-900">
+          <div className="mt-4 rounded-md border border-[var(--dl-line)] bg-[var(--dl-paper)] p-4">
+            <label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--dl-ink)]">
               <input
                 type="checkbox"
                 checked={autoRefresh}
                 onChange={(event) => setAutoRefresh(event.target.checked)}
-                className="h-5 w-5"
+                className="h-5 w-5 accent-[var(--dl-navy)]"
               />
               Auto-refresh every 5 minutes
             </label>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-[var(--dl-ink-soft)]">
               Status:{' '}
               {autoRefresh
                 ? paused
@@ -403,7 +406,7 @@ export default function AlertsPage() {
       ) : null}
 
       {isLoading && snapshot === null && pendingArea !== null ? (
-        <p role="status" className="rounded-md bg-blue-50 p-4 text-sm font-medium text-blue-900">
+        <p role="status" className="dl-card text-sm font-medium text-[var(--dl-navy)]">
           Loading current alerts for {stateName(pendingArea)} ({pendingArea})…
         </p>
       ) : null}
@@ -420,7 +423,7 @@ export default function AlertsPage() {
           <button
             type="button"
             onClick={() => load(error.area)}
-            className="mt-3 min-h-11 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+            className="mt-3 min-h-11 rounded-md bg-[var(--dl-navy)] px-4 py-2 text-sm font-semibold text-[var(--dl-surface)] hover:bg-[var(--dl-navy-deep)]"
           >
             Retry for {stateName(error.area)} ({error.area})
           </button>

@@ -150,26 +150,34 @@ export default function ExplorePage() {
   const lastRow = Math.min(safePage * PAGE_SIZE, total)
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Explore declarations
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
+    <div className="dl-page">
+      <header>
+        <p className="dl-kicker">Data browser</p>
+        <h1 className="dl-page-title mt-1">Explore declarations</h1>
+        <p className="dl-page-lede mt-2">
           Search and sort the declaration records loaded from FEMA. Click a row
           for details.
         </p>
-      </div>
+      </header>
 
-      {cacheEntry && (
-        <p className="text-sm text-slate-600">
-          {status === 'error' ? 'Stale snapshot — ' : status === 'loading' ? 'Updating snapshot — ' : 'Snapshot — '}
-          fetched {new Date(cacheEntry.fetchedAt).toISOString().replace('T', ' ').slice(0, 19)} UTC.
-        </p>
-      )}
-      {status === 'error' ? (
-        <ErrorBanner message={errorMessage} onRetry={startLoad} />
-      ) : null}
+      <div className="dl-card space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            {cacheEntry ? <DataScope entry={cacheEntry} /> : null}
+            {cacheEntry ? (
+              <p className="dl-meta mt-2">
+                {status === 'error' ? 'Stale snapshot — ' : status === 'loading' ? 'Updating snapshot — ' : 'Snapshot — '}
+                fetched {new Date(cacheEntry.fetchedAt).toISOString().replace('T', ' ').slice(0, 19)} UTC.
+              </p>
+            ) : (
+              <p className="dl-meta">No snapshot loaded yet.</p>
+            )}
+          </div>
+        </div>
+        {status === 'error' ? (
+          <ErrorBanner message={errorMessage} onRetry={startLoad} />
+        ) : null}
+      </div>
 
       {records === null && status === 'loading' ? <TableSkeleton rows={12} /> : null}
 
@@ -181,7 +189,7 @@ export default function ExplorePage() {
           <button
             type="button"
             onClick={startLoad}
-            className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+            className="dl-btn dl-btn-primary"
           >
             Load latest declarations
           </button>
@@ -189,34 +197,38 @@ export default function ExplorePage() {
       ) : null}
 
       {records !== null ? (
-        <div className="space-y-4">
-          {cacheEntry ? <DataScope entry={cacheEntry} /> : null}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <label htmlFor="table-search" className="sr-only">
-              Search declarations
-            </label>
-            <input
-              id="table-search"
-              type="search"
-              value={search}
-              placeholder="Search title, state, area, or type…"
-              onChange={(event) => {
-                setSearch(event.target.value)
-                setPage(1)
-              }}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 sm:max-w-sm"
-            />
-            <p className="text-sm text-slate-500">
-              {formatNumber(total)} of {formatNumber(records.length)}{' '}
-              records
-              {cacheEntry
-                ? ` · fetched ${formatDate(new Date(cacheEntry.fetchedAt).toISOString())}`
-                : ''}
-            </p>
+        <section className="dl-card space-y-4" aria-label="Declaration records">
+          <div className="flex flex-col gap-3 border-b border-[var(--dl-line)] pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <p className="dl-kicker">Records</p>
+              <p className="dl-meta mt-1">
+                {formatNumber(total)} of {formatNumber(records.length)}{' '}
+                records
+                {cacheEntry
+                  ? ` · fetched ${formatDate(new Date(cacheEntry.fetchedAt).toISOString())}`
+                  : ''}
+              </p>
+            </div>
+            <div className="w-full sm:max-w-sm">
+              <label htmlFor="table-search" className="dl-field-label">
+                Search declarations
+              </label>
+              <input
+                id="table-search"
+                type="search"
+                value={search}
+                placeholder="Search title, state, area, or type…"
+                onChange={(event) => {
+                  setSearch(event.target.value)
+                  setPage(1)
+                }}
+                className="mt-1 w-full rounded-md border border-[var(--dl-line)] bg-[var(--dl-surface)] px-3 py-2 text-sm text-[var(--dl-ink)] placeholder:text-[var(--dl-ink-soft)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--dl-navy)]"
+              />
+            </div>
           </div>
 
           <div
-            className="overflow-x-auto rounded-lg border border-slate-200 bg-white"
+            className="overflow-x-auto rounded-lg border border-[var(--dl-line)] bg-[var(--dl-surface)]"
             tabIndex={0}
             role="region"
             aria-label="Declaration records table, scroll horizontally to see all columns"
@@ -225,7 +237,7 @@ export default function ExplorePage() {
               <caption className="sr-only">
                 Declaration records matching the current search. Column headers sort the table. Open a title link for declaration details.
               </caption>
-              <thead className="border-b border-slate-200 bg-slate-50">
+              <thead className="border-b border-[var(--dl-line)] bg-[var(--dl-paper)]">
                 <tr>
                   {COLUMNS.map((column) => (
                     <th
@@ -238,12 +250,12 @@ export default function ExplorePage() {
                             : 'descending'
                           : 'none'
                       }
-                      className="px-4 py-3 font-semibold text-slate-600"
+                      className="px-4 py-3 font-semibold text-[var(--dl-ink-soft)]"
                     >
                       <button
                         type="button"
                         onClick={() => handleSort(column.key)}
-                        className="inline-flex min-h-11 items-center gap-1 px-1 font-semibold hover:text-slate-900"
+                        className="inline-flex min-h-11 items-center gap-1 px-1 font-semibold hover:text-[var(--dl-navy-deep)]"
                       >
                         {column.label}
                         <span aria-hidden="true" className="text-xs">
@@ -258,10 +270,10 @@ export default function ExplorePage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[var(--dl-line)]">
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={COLUMNS.length} className="px-4 py-12 text-center text-slate-500">
+                    <td colSpan={COLUMNS.length} className="px-4 py-12 text-center text-[var(--dl-ink-soft)]">
                       No records match “{search}”.
                     </td>
                   </tr>
@@ -269,24 +281,24 @@ export default function ExplorePage() {
                   rows.map((record, index) => (
                     <tr
                       key={`${record.disasterNumber}-${index}`}
-                      className="hover:bg-slate-50"
+                      className="hover:bg-[var(--dl-paper)]"
                     >
                       <td className="px-4 py-3">
                         <Link
                           to={`/disaster/${record.disasterNumber}`}
-                          className="font-medium text-blue-700 hover:underline"
+                          className="dl-link font-medium"
                         >
                           {record.declarationTitle}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-slate-700">{record.state}</td>
-                      <td className="px-4 py-3 text-slate-700">
+                      <td className="px-4 py-3 text-[var(--dl-ink)]">{record.state}</td>
+                      <td className="px-4 py-3 text-[var(--dl-ink)]">
                         {record.designatedArea}
                       </td>
-                      <td className="px-4 py-3 text-slate-700">
+                      <td className="px-4 py-3 text-[var(--dl-ink)]">
                         {record.incidentType}
                       </td>
-                      <td className="px-4 py-3 text-slate-700">
+                      <td className="px-4 py-3 whitespace-nowrap text-[var(--dl-ink-soft)]">
                         {formatDate(record.declarationDate)}
                       </td>
                     </tr>
@@ -297,7 +309,7 @@ export default function ExplorePage() {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="text-sm text-slate-500">
+            <p className="dl-meta">
               {total > 0
                 ? `Showing ${formatNumber(firstRow)}–${formatNumber(lastRow)} of ${formatNumber(total)}`
                 : 'No records to show'}
@@ -307,24 +319,24 @@ export default function ExplorePage() {
                 type="button"
                 disabled={safePage <= 1}
                 onClick={() => setPage(safePage - 1)}
-                className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="dl-btn dl-btn-secondary"
               >
                 Previous
               </button>
-              <span className="text-sm text-slate-600">
+              <span className="text-sm text-[var(--dl-ink-soft)]">
                 Page {safePage} of {pageCount}
               </span>
               <button
                 type="button"
                 disabled={safePage >= pageCount}
                 onClick={() => setPage(safePage + 1)}
-                className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="dl-btn dl-btn-secondary"
               >
                 Next
               </button>
             </div>
           </div>
-        </div>
+        </section>
       ) : null}
     </div>
   )

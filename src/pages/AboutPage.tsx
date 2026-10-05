@@ -21,69 +21,76 @@ const DECLARATION_TYPES: Array<{ code: string; label: string; meaning: string }>
 
 export default function AboutPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          About DisasterLens
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
+    <div className="dl-page">
+      <header>
+        <p className="dl-kicker">About</p>
+        <h1 className="dl-page-title mt-1">About DisasterLens</h1>
+        <p className="dl-page-lede mt-2">
           What this dashboard shows, where the data comes from, and what it
           does not do.
         </p>
-      </div>
+      </header>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-slate-900">Data source</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
+      <section className="dl-card" aria-labelledby="about-data-source">
+        <h2 id="about-data-source" className="text-lg font-semibold text-[var(--dl-navy-deep)]">
+          Data source
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--dl-ink-soft)]">
           DisasterLens reads the{' '}
           <a
-            className="text-blue-700 hover:underline"
+            className="dl-link"
             href="https://www.fema.gov/about/openfema"
           >
             OpenFEMA
           </a>{' '}
           Disaster Declarations Summaries dataset (API v2), fetched directly
           from{' '}
-          <code className="break-all rounded bg-slate-100 px-1.5 py-0.5 text-sm">
+          <code className="break-all rounded bg-[var(--dl-paper)] px-1.5 py-0.5 text-sm">
             www.fema.gov/api/open/v2/DisasterDeclarationsSummaries
           </code>{' '}
-          in your browser — no server in between, no API key, and nothing is
-          stored beyond this session. The dataset covers federally declared
-          disasters back to 1953; this dashboard focuses on 2016 onward. Each
-          record represents one declaration for one designated area (usually a
-          county), so a single disaster covering several counties appears
-          several times, and counts here are record counts, not unique
-          disasters.
+          in your browser — no server in between and no API key. For accepted
+          historical FEMA queries, the app keeps bounded public-record
+          snapshots in your browser’s IndexedDB so revisits feel faster: up
+          to 6 query snapshots and 20 detail snapshots, refreshed within a
+          24-hour freshness window, with a Clear cached data action available.
+          Snapshot freshness is the time since the local copy was fetched; it
+          is different from the official record date FEMA assigns. The dataset
+          covers federally declared disasters back to 1953; this dashboard
+          focuses on 2016 onward. Each record represents one declaration for
+          one designated area (usually a county), so a single disaster
+          covering several counties appears several times, and counts here
+          are record counts, not unique disasters.
         </p>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+        <p className="mt-3 text-sm leading-relaxed text-[var(--dl-ink-soft)]">
           Each query loads at most 5,000 records. At that limit, charts, search and area lists may be incomplete.
           Details query the selected disaster independently, including older declarations.
           Data is fetched on page load or an applied query, not continuously monitored; freshness depends on FEMA updates.
         </p>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+        <p className="mt-3 text-sm leading-relaxed text-[var(--dl-ink-soft)]">
           Separately from this FEMA declaration history, the Alerts page loads current
           active weather alerts directly from the National Weather Service API
           (api.weather.gov) for a state or territory you select. That snapshot covers
           official NWS weather alerts only, may be delayed or cached, and is not a
-          guaranteed real-time warning or notification service.
+          guaranteed real-time warning or notification service. Current alerts and
+          historical declarations are separate views and are not merged.
         </p>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-slate-900">
+      <section className="dl-card" aria-labelledby="about-declaration-types">
+        <h2 id="about-declaration-types" className="text-lg font-semibold text-[var(--dl-navy-deep)]">
           Declaration types
         </h2>
-        <dl className="mt-3 space-y-4">
+        <dl className="mt-4 space-y-4">
           {DECLARATION_TYPES.map((type) => (
-            <div key={type.code} className="flex gap-3">
+            <div key={type.code} className="flex gap-3 border-t border-[var(--dl-line)] pt-4 first:border-t-0 first:pt-0">
               <dt className="shrink-0">
-                <span className="inline-flex h-8 w-10 items-center justify-center rounded-md bg-blue-700 text-sm font-bold text-white">
+                <span className="inline-flex h-8 w-10 items-center justify-center rounded-md bg-[var(--dl-navy)] text-sm font-bold text-[var(--dl-surface)]">
                   {type.code}
                 </span>
               </dt>
               <dd className="min-w-0 text-sm [overflow-wrap:anywhere]">
-                <p className="font-semibold text-slate-900">{type.label}</p>
-                <p className="mt-0.5 leading-relaxed text-slate-600">
+                <p className="font-semibold text-[var(--dl-ink)]">{type.label}</p>
+                <p className="mt-0.5 leading-relaxed text-[var(--dl-ink-soft)]">
                   {type.meaning}
                 </p>
               </dd>
@@ -92,8 +99,8 @@ export default function AboutPage() {
         </dl>
       </section>
 
-      <section className="rounded-lg border border-amber-300 bg-amber-50 p-5">
-        <h2 className="text-lg font-semibold text-amber-900">Disclaimer</h2>
+      <section className="rounded-lg border border-amber-300 bg-amber-50 p-5" aria-labelledby="about-disclaimer">
+        <h2 id="about-disclaimer" className="text-lg font-semibold text-amber-900">Disclaimer</h2>
         <p className="mt-2 text-sm leading-relaxed text-amber-900">
           DisasterLens is an informational project, not an official source of
           emergency information. It is not affiliated with FEMA. Data may lag

@@ -26,6 +26,8 @@ npm run preview
 
 Browser regression scenarios are documented in [acceptance](docs/acceptance.md). They distinguish synthetic edge-case fixtures from actual API checks. The [cross-project cache repair backlog](docs/cross-project-cache-backlog.md) records verified redundant requests, source-specific caching/privacy constraints, and the ordered repair queue; planned items are not completed fixes.
 
+The v0.3.0 feature-branch [map-first UI/UX redesign](docs/uiux-redesign.md) covers all six pages and the user-confirmed persistent central state box. `scripts/state-interaction-smoke.cjs` verifies pointer/touch/keyboard behavior, immediate state selection and preserved year/type drafts; `scripts/uiux-bounds-smoke.cjs` checks every route at three widths and two text scales without clipping the page. Both require an explicit `BASE_URL` and an external `PLAYWRIGHT_MODULE` (or installed Playwright); browser fixtures are test-only. Visual review and production publication remain separate approval gates.
+
 ## Data and completeness
 
 Queries fetch client-side from `https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries`, in 1,000-row batches up to a 5,000-record safety bound. A short final page establishes completion for that request; reaching the bound displays **may be incomplete**, even when exactly 5,000 records exist. It does not claim a known full total. A later-page failure rejects the request instead of presenting partial records as complete. Invalid records are reported, not silently dropped.
@@ -40,7 +42,7 @@ Identical concurrent FEMA queries share the entire active paged request, keyed b
 
 ## Build and hosting
 
-`dist/` is a pure static frontend using relative assets and HashRouter; no SPA fallback or server runtime is required. The footer displays package version (`0.2.2`), UTC build time and short commit SHA. Pages load on demand, so non-dashboard entries do not download the map/chart chunk; the navigation shell stays available while a page chunk loads. CI uses `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA`, with local Git fallback. An uncommitted build's SHA refers to its base commit, not unpublished edits.
+`dist/` is a pure static frontend using relative assets and HashRouter; no SPA fallback or server runtime is required. The footer displays package version (`0.3.0` on this redesign branch), UTC build time and short commit SHA. Pages load on demand, so non-dashboard entries do not download the map/chart chunk; the navigation shell stays available while a page chunk loads. CI uses `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA`, with local Git fallback. An uncommitted build's SHA refers to its base commit, not unpublished edits.
 
 English title, description, Open Graph and Twitter text are included. The user-confirmed production document URL is `https://disasterlens.leixue.dev/`, now used for canonical and Open Graph URL metadata. No social-image URL is claimed. A local build or feature-branch push is not proof this domain serves the new release; the user handles deployment.
 

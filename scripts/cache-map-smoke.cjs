@@ -127,7 +127,7 @@ const all = [record(101, 'CA', 'Alpha County'), record(102, 'CA', 'Beta County')
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `cache/map controls fit ${width}px at 200% text`);
       if (!cacheOnly) {
         await page.locator('.rsm-geography[data-state="PA"]').focus();
-        const tip = page.getByRole('tooltip');
+        const tip = page.locator('#state-map-focus-info');
         await tip.waitFor();
         assert.match(await tip.innerText(), /Pennsylvania/);
         const bounds = await tip.boundingBox();
@@ -142,7 +142,7 @@ const all = [record(101, 'CA', 'Alpha County'), record(102, 'CA', 'Beta County')
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `cache/map controls fit ${width}px at 200% page zoom`);
       if (!cacheOnly) {
         await page.locator('.rsm-geography[data-state="PA"]').focus();
-        const tip = page.getByRole('tooltip'); await tip.waitFor();
+        const tip = page.locator('#state-map-focus-info'); await tip.waitFor();
         const bounds = await tip.boundingBox();
         assert.ok(bounds && bounds.x >= -1 && bounds.x + bounds.width <= width + 1, `tooltip fits ${width}px at 200% page zoom`);
       }

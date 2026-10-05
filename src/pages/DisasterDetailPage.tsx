@@ -106,13 +106,13 @@ export default function DisasterDetailPage() {
         <button
           type="button"
           onClick={() => { setForceRefresh((value) => value + 1); setAttempt((value) => value + 1) }}
-          className="min-h-11 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+          className="dl-btn dl-btn-secondary"
         >
           Refresh details
         </button>
         <Link
           to="/disasters"
-          className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+          className="dl-btn dl-btn-primary"
         >
           Back to explore
         </Link>
@@ -121,13 +121,36 @@ export default function DisasterDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Link
-        to="/disasters"
-        className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
-      >
-        ← Back to loaded declarations
-      </Link>
+    <div className="dl-page">
+      <header>
+        <Link
+          to="/disasters"
+          className="dl-link text-sm font-medium"
+        >
+          ← Back to loaded declarations
+        </Link>
+
+        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="dl-kicker">Declaration detail</p>
+            <h1 className="dl-page-title mt-1">
+              {primary.declarationTitle}
+            </h1>
+            <p className="dl-page-lede mt-2">
+              FEMA disaster #{primary.disasterNumber} · {primary.state} · declared{' '}
+              {formatDate(primary.declarationDate)}
+            </p>
+          </div>
+          <div className="flex min-w-0 max-w-full flex-wrap gap-2">
+            <span className="dl-chip max-w-full">
+              {TYPE_LABELS[primary.declarationType] ?? primary.declarationType}
+            </span>
+            <span className="dl-chip max-w-full">
+              {primary.incidentType}
+            </span>
+          </div>
+        </div>
+      </header>
 
       {result.limitReached ? (
         <p role="note" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
@@ -135,54 +158,36 @@ export default function DisasterDetailPage() {
         </p>
       ) : null}
       {current.error && current.result ? <ErrorBanner message={current.error} onRetry={() => { setForceRefresh((value) => value + 1); setAttempt((value) => value + 1) }} /> : null}
-      <article className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 [overflow-wrap:anywhere] sm:p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-            {TYPE_LABELS[primary.declarationType] ?? primary.declarationType}
-          </span>
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-            {primary.incidentType}
-          </span>
-        </div>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
-          {primary.declarationTitle}
-        </h1>
-        <dl className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2 [&>*]:min-w-0">
+
+      <article className="dl-card min-w-0 [overflow-wrap:anywhere]" aria-label="Declaration facts">
+        <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 [&>*]:min-w-0">
           <div>
-            <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              Disaster number
-            </dt>
-            <dd className="mt-1 text-sm text-slate-900">
+            <dt className="dl-kicker">Disaster number</dt>
+            <dd className="mt-1 text-sm text-[var(--dl-ink)]">
               #{primary.disasterNumber}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              Declaration date
-            </dt>
-            <dd className="mt-1 text-sm text-slate-900">
+            <dt className="dl-kicker">Declaration date</dt>
+            <dd className="mt-1 text-sm text-[var(--dl-ink)]">
               {formatDate(primary.declarationDate)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              State / Territory
-            </dt>
-            <dd className="mt-1 text-sm text-slate-900">{primary.state}</dd>
+            <dt className="dl-kicker">State / Territory</dt>
+            <dd className="mt-1 text-sm text-[var(--dl-ink)]">{primary.state}</dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              Incident type
-            </dt>
-            <dd className="mt-1 text-sm text-slate-900">{primary.incidentType}</dd>
+            <dt className="dl-kicker">Incident type</dt>
+            <dd className="mt-1 text-sm text-[var(--dl-ink)]">{primary.incidentType}</dd>
           </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+          <div className="sm:col-span-2 border-t border-[var(--dl-line)] pt-4">
+            <dt className="dl-kicker">
               Loaded designated area{areas.length > 1 ? `s (${areas.length})` : ''}
             </dt>
-            <dd className="mt-1 text-sm text-slate-900">
+            <dd className="mt-2 text-sm text-[var(--dl-ink)]">
               {areas.length > 1 ? (
-                <ul className="mt-1 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
+                <ul className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
                   {areas.map((area) => (
                     <li key={area}>{area}</li>
                   ))}
@@ -193,20 +198,20 @@ export default function DisasterDetailPage() {
             </dd>
           </div>
         </dl>
-        <p className="mt-6 border-t border-slate-100 pt-4 text-xs text-slate-500">
+        <p className="dl-note mt-6 border-t border-[var(--dl-line)] pt-4">
           Queried directly from OpenFEMA for disaster #{number}, independently of dashboard filters.
           This is declaration information, not a real-time hazard alert.
         </p>
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => setForceRefresh((v) => v + 1)}
-            className="min-h-11 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            className="dl-btn dl-btn-secondary"
           >
             Refresh details
           </button>
           {current.fetchedAt !== undefined ? (
-            <span className="text-xs text-slate-500">
+            <span className="dl-meta">
               Fetched {new Date(current.fetchedAt).toISOString().replace('T', ' ').slice(0, 19)} UTC
               {current.fromCache ? ' · cached' : ''}
               {current.stale ? ' · stale snapshot' : ''}

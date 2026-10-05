@@ -2,11 +2,7 @@ import { useEffect, useRef, type MouseEvent } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-    isActive
-      ? 'bg-blue-700 text-white'
-      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-  }`
+  `atlas-nav-link ${isActive ? 'atlas-nav-link--active' : ''}`
 
 function routeTitle(pathname: string): string {
   if (pathname.startsWith('/disaster/')) return 'Declaration details — DisasterLens'
@@ -54,16 +50,16 @@ export default function Layout() {
       <a
         href="#main-content"
         onClick={skipToMain}
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:max-w-[calc(100vw-1rem)] focus:rounded-md focus:bg-blue-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:break-words"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:max-w-[calc(100vw-1rem)] focus:rounded-md focus:bg-teal-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:break-words"
       >
         Skip to main content
       </a>
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3 sm:px-6">
-          <NavLink to="/" className="flex min-w-0 min-h-11 items-center gap-2">
+      <header className="atlas-header">
+        <div className="atlas-shell flex flex-wrap items-center gap-x-4 gap-y-1 py-3">
+          <NavLink to="/" className="flex min-h-11 min-w-0 items-center gap-2">
             <span
               aria-hidden="true"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-700"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-700"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -76,8 +72,13 @@ export default function Layout() {
                 <circle cx="12" cy="12" r="2" fill="#fbbf24" stroke="none" />
               </svg>
             </span>
-            <span className="min-w-0 break-words text-lg font-bold tracking-tight text-slate-900">
-              DisasterLens
+            <span className="min-w-0">
+              <span className="block break-words text-lg font-bold tracking-tight text-white">
+                DisasterLens
+              </span>
+              <span className="block text-[0.65rem] font-semibold tracking-[0.14em] text-teal-200 uppercase">
+                Public disaster data explorer
+              </span>
             </span>
           </NavLink>
           <nav aria-label="Main navigation" className="ml-auto min-w-0">
@@ -115,23 +116,23 @@ export default function Layout() {
         id="main-content"
         ref={mainRef}
         tabIndex={-1}
-        className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 outline-none sm:px-6 sm:py-8"
+        className="atlas-shell flex-1 py-6 outline-none sm:py-8"
       >
         <Outlet />
       </main>
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-500 sm:px-6">
+      <footer className="atlas-footer">
+        <div className="atlas-shell py-6">
           <p>
             Historical disaster declarations from the{' '}
             <a
-              className="font-medium text-blue-700 hover:underline"
+              className="dl-link"
               href="https://www.fema.gov/about/openfema"
             >
               FEMA OpenFEMA API
             </a>
             ; current weather alerts on the Alerts page from the{' '}
             <a
-              className="font-medium text-blue-700 hover:underline"
+              className="dl-link"
               href="https://www.weather.gov/documentation/services-web-api"
             >
               National Weather Service API

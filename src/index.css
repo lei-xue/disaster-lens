@@ -1,8 +1,26 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    /* DisasterLens atlas palette: navy/teal/ink on warm paper. */
+    --dl-paper: #f7f4ee;
+    --dl-surface: #fffdf8;
+    --dl-ink: #16222e;
+    --dl-ink-soft: #41505f;
+    --dl-navy: #123a5c;
+    --dl-navy-deep: #0c2a44;
+    --dl-teal: #0f766e;
+    --dl-teal-soft: #d7ebe7;
+    --dl-amber: #b45309;
+    --dl-line: #ddd6c8;
+    --dl-focus: #0b5cab;
+  }
+
+
   body {
-    @apply bg-slate-100 text-slate-900 antialiased;
+    background-color: var(--dl-paper);
+    color: var(--dl-ink);
+    -webkit-font-smoothing: antialiased;
   }
 
   /* Explicit, consistent keyboard focus indicator for every interactive element. */
@@ -12,7 +30,7 @@
   select:focus-visible,
   input:focus-visible,
   [tabindex]:focus-visible {
-    outline: 2px solid var(--color-blue-700);
+    outline: 2px solid var(--dl-focus);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -24,11 +42,28 @@
   }
   .rsm-geography:focus-visible {
     outline: none;
-    stroke: var(--color-blue-700);
+    stroke: var(--dl-teal);
     stroke-width: 3px;
   }
-  .rsm-geography:hover {
-    fill: var(--color-blue-200);
+  /* Hover fill only where a true hover-capable pointer exists. */
+  @media (hover: hover) and (pointer: fine) {
+    .rsm-geography:hover {
+      fill: #cfe0ee;
+    }
+  }
+
+  /* Long labels/URLs never overflow the reading shell. */
+  p, li, td, th, a, span, h1, h2, h3 {
+    overflow-wrap: anywhere;
+  }
+
+  /* Coarse pointers: form text stays >=16px to avoid iOS zoom. */
+  @media (pointer: coarse) {
+    select,
+    input,
+    textarea {
+      font-size: 16px;
+    }
   }
 
   /* Respect reduced-motion: no skeleton pulse, no state-by-motion transitions. */
@@ -39,6 +74,263 @@
     .transition-transform,
     .transition-colors {
       transition: none;
+    }
+  }
+}
+
+@layer components {
+  /* ---- Reusable atlas vocabulary (dl-/atlas-) for all page interiors ---- */
+
+  /* Reading shell: roomy page container. */
+  .atlas-shell {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .atlas-shell {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* Page interior stack + heading hierarchy. */
+  .dl-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+  .dl-page-title {
+    font-size: 1.6rem;
+    line-height: 1.2;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--dl-navy-deep);
+    text-wrap: balance;
+  }
+  .dl-page-lede {
+    margin-top: 0.35rem;
+    font-size: 0.925rem;
+    line-height: 1.55;
+    color: var(--dl-ink-soft);
+    max-width: 65ch;
+  }
+  .dl-kicker {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dl-teal);
+  }
+
+  /* Surfaces. */
+  .dl-card {
+    background: var(--dl-surface);
+    border: 1px solid var(--dl-line);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    min-width: 0;
+  }
+  @media (min-width: 640px) {
+    .dl-card {
+      padding: 1.25rem;
+    }
+  }
+
+  /* Geography-first hero: map dominates, scope/aside subordinate. */
+  .dl-hero {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+  }
+  @media (min-width: 1024px) {
+    .dl-hero {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 1.25rem;
+    }
+  }
+  .dl-hero-map {
+    min-width: 0;
+  }
+  .dl-hero-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  /* Subordinate grid for secondary analytics. */
+  .dl-grid-secondary {
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 1024px) {
+    .dl-grid-secondary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Header / nav chrome. */
+  .atlas-header {
+    background: var(--dl-navy-deep);
+    color: #eef4f9;
+    border-bottom: 3px solid var(--dl-teal);
+  }
+  .atlas-nav-link {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #c9d8e4;
+    white-space: nowrap;
+  }
+  @media (hover: hover) {
+    .atlas-nav-link:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+  }
+  .atlas-nav-link[data-active='true'] {
+    background: var(--dl-teal);
+    color: #ffffff;
+  }
+
+  /* Footer. */
+  .atlas-footer {
+    border-top: 1px solid var(--dl-line);
+    background: var(--dl-surface);
+    font-size: 0.85rem;
+    color: var(--dl-ink-soft);
+  }
+
+  /* Buttons. */
+  .dl-btn {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 650;
+    border: 1px solid transparent;
+    cursor: pointer;
+    white-space: normal;
+    text-align: center;
+  }
+  .dl-btn-primary {
+    background: var(--dl-navy);
+    color: #ffffff;
+  }
+  @media (hover: hover) {
+    .dl-btn-primary:hover {
+      background: var(--dl-navy-deep);
+    }
+  }
+  .dl-btn-secondary {
+    background: transparent;
+    color: var(--dl-ink);
+    border-color: var(--dl-line);
+  }
+  @media (hover: hover) {
+    .dl-btn-secondary:hover {
+      background: #efe9dd;
+    }
+  }
+  .dl-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  /* Compact secondary actions (refresh/clear/safety copy). */
+  .dl-btn-compact {
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  /* Filter chip (incident types). */
+  .dl-chip {
+    min-height: 44px;
+    border-radius: 9999px;
+    border: 1px solid var(--dl-line);
+    background: var(--dl-surface);
+    color: var(--dl-ink);
+    padding: 0.5rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .dl-chip[aria-pressed='true'] {
+    background: var(--dl-teal);
+    border-color: var(--dl-teal);
+    color: #ffffff;
+  }
+
+  /* Field label + control. */
+  .dl-field-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dl-ink-soft);
+  }
+  .dl-select {
+    margin-top: 0.3rem;
+    min-height: 44px;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--dl-line);
+    background: #ffffff;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    color: var(--dl-ink);
+  }
+
+  /* Meta/status text. */
+  .dl-meta {
+    font-size: 0.75rem;
+    color: var(--dl-ink-soft);
+  }
+  .dl-note {
+    border-radius: 0.5rem;
+    border: 1px solid #e6c58a;
+    background: #fbf3e2;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+    color: #5c3a06;
+  }
+
+  /* Subordinate chart sizing without touching chart modules. */
+  .dl-chart-secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .dl-chart-secondary .dl-chart-frame {
+    height: 16rem;
+  }
+
+  .dl-link {
+    color: var(--dl-navy);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+/* Override component and text-size utilities on coarse pointers without
+   disabling zoom or pinning enlarged text to a fixed pixel size. */
+@layer utilities {
+  @media (pointer: coarse) {
+    main input[class],
+    main select[class],
+    main textarea[class] {
+      font-size: max(1rem, 16px);
     }
   }
 }
