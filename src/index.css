@@ -970,6 +970,22 @@
   }
 }
 
+/* Small pointer feedback only: no layout motion or keyboard-action delay. */
+@layer components {
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .dl-btn,
+    .dl-chip,
+    .atlas-nav-link {
+      transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+    }
+    .dl-btn:focus-visible,
+    .dl-chip:focus-visible,
+    .atlas-nav-link:focus-visible {
+      transition: none;
+    }
+  }
+}
+
 /* Override component and text-size utilities on coarse pointers without
    disabling zoom or pinning enlarged text to a fixed pixel size. */
 @layer utilities {
