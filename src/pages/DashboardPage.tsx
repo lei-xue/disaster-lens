@@ -542,6 +542,7 @@ export default function DashboardPage() {
                 <h2 id="map-title" className="dl-section-title">
                   Declaration records map
                 </h2>
+                {entry ? <DataScope entry={entry} /> : null}
                 <p className="dl-meta">
                   Select a state to filter.
                 </p>
@@ -569,7 +570,6 @@ export default function DashboardPage() {
                   <dd className="dl-stat-hint">Year with the most loaded records</dd>
                 </div>
               </dl>
-              {entry ? <DataScope entry={entry} /> : null}
             </div>
           </div>
 
