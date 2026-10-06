@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Bar,
@@ -18,7 +18,7 @@ import DataScope from '../components/DataScope.tsx'
 import EmptyState from '../components/EmptyState.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
 import { DashboardSkeleton } from '../components/Skeleton.tsx'
-import StateChoropleth from '../components/StateChoropleth.tsx'
+import MapBoundary from '../components/MapBoundary.tsx'
 import {
   busiestYear,
   countByState,
@@ -53,6 +53,8 @@ import {
 } from '../lib/disasterCache.ts'
 import { formatNumber, formatShare } from '../lib/format.ts'
 import type { DisasterRecord } from '../lib/types.ts'
+
+const StateChoropleth = lazy(() => import('../components/StateChoropleth.tsx'))
 
 type Status = 'loading' | 'success' | 'error'
 
@@ -546,7 +548,11 @@ export default function DashboardPage() {
                 <p className="dl-meta">
                   Select a state to filter.
                 </p>
-                <StateChoropleth counts={allStateCounts} selectedState={appliedState} onSelectState={selectStateScope} />
+                <MapBoundary>
+                  <Suspense fallback={<p role="status" className="dl-meta">Loading map…</p>}>
+                    <StateChoropleth counts={allStateCounts} selectedState={appliedState} onSelectState={selectStateScope} />
+                  </Suspense>
+                </MapBoundary>
               </section>
               <dl className="dl-stat-band">
                 <div className="dl-stat">
