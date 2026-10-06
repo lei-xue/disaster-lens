@@ -1,4 +1,5 @@
 import type { DisasterRecord } from './types'
+import { withRequestDeadline } from './requestDeadline.ts'
 
 export const FEMA_BASE_URL =
   'https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries'
@@ -105,7 +106,20 @@ export function buildDisasterDetailUrl(number: number, top = PAGE_SIZE, skip = 0
     (skip > 0 ? `&$skip=${skip}` : '')
 }
 
-async function fetchPages(
+function fetchPages(
+  buildUrl: (top: number, skip: number) => string,
+  signal?: AbortSignal,
+  request: typeof fetch = fetch,
+): Promise<DisasterResult> {
+  return withRequestDeadline(
+    upstream => fetchPagesWithinDeadline(buildUrl, upstream, request),
+    signal,
+    60_000,
+    () => new FemaError('FEMA took too long to respond. Previous data is unchanged. Please retry.'),
+  )
+}
+
+async function fetchPagesWithinDeadline(
   buildUrl: (top: number, skip: number) => string,
   signal?: AbortSignal,
   request: typeof fetch = fetch,
