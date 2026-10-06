@@ -24,6 +24,10 @@ const all = [record(101, 'CA', 'Alpha County'), record(102, 'CA', 'Beta County')
     });
     const loaded = async () => {
       await page.getByLabel('Loaded data scope', { exact: true }).waitFor();
+      const advanced = page.locator('details.dl-filter-details');
+      if (await advanced.count() && !(await advanced.evaluate(el => el.open))) {
+        await advanced.locator('summary').click();
+      }
       await page.getByRole('button', { name: 'Apply filters', exact: true }).waitFor();
     };
     const nav = name => page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name, exact: true }).click();

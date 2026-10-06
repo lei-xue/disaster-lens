@@ -152,32 +152,8 @@ export default function ExplorePage() {
   return (
     <div className="dl-page">
       <header>
-        <p className="dl-kicker">Data browser</p>
-        <h1 className="dl-page-title mt-1">Explore declarations</h1>
-        <p className="dl-page-lede mt-2">
-          Search and sort the declaration records loaded from FEMA. Click a row
-          for details.
-        </p>
+        <h1 className="dl-page-title">Explore declarations</h1>
       </header>
-
-      <div className="dl-card space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            {cacheEntry ? <DataScope entry={cacheEntry} /> : null}
-            {cacheEntry ? (
-              <p className="dl-meta mt-2">
-                {status === 'error' ? 'Stale snapshot — ' : status === 'loading' ? 'Updating snapshot — ' : 'Snapshot — '}
-                fetched {new Date(cacheEntry.fetchedAt).toISOString().replace('T', ' ').slice(0, 19)} UTC.
-              </p>
-            ) : (
-              <p className="dl-meta">No snapshot loaded yet.</p>
-            )}
-          </div>
-        </div>
-        {status === 'error' ? (
-          <ErrorBanner message={errorMessage} onRetry={startLoad} />
-        ) : null}
-      </div>
 
       {records === null && status === 'loading' ? <TableSkeleton rows={12} /> : null}
 
@@ -196,16 +172,21 @@ export default function ExplorePage() {
         </EmptyState>
       ) : null}
 
+      {records === null && status === 'error' ? (
+        <ErrorBanner message={errorMessage} onRetry={startLoad} />
+      ) : null}
+
       {records !== null ? (
-        <section className="dl-card space-y-4" aria-label="Declaration records">
-          <div className="flex flex-col gap-3 border-b border-[var(--dl-line)] pb-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0">
+        <section className="dl-record-workspace" aria-label="Declaration records">
+          <div className="dl-record-toolbar">
+            <div className="min-w-0 flex-1">
               <p className="dl-kicker">Records</p>
+              {cacheEntry ? <DataScope entry={cacheEntry} /> : null}
               <p className="dl-meta mt-1">
                 {formatNumber(total)} of {formatNumber(records.length)}{' '}
                 records
                 {cacheEntry
-                  ? ` · fetched ${formatDate(new Date(cacheEntry.fetchedAt).toISOString())}`
+                  ? ` · ${status === 'error' ? 'stale snapshot' : status === 'loading' ? 'updating snapshot' : 'snapshot'} fetched ${new Date(cacheEntry.fetchedAt).toISOString().replace('T', ' ').slice(0, 19)} UTC`
                   : ''}
               </p>
             </div>
@@ -308,7 +289,7 @@ export default function ExplorePage() {
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="dl-record-footer">
             <p className="dl-meta">
               {total > 0
                 ? `Showing ${formatNumber(firstRow)}–${formatNumber(lastRow)} of ${formatNumber(total)}`

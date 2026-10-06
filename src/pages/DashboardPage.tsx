@@ -14,11 +14,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import ChartCard from '../components/ChartCard.tsx'
 import DataScope from '../components/DataScope.tsx'
 import EmptyState from '../components/EmptyState.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
-import KpiCard from '../components/KpiCard.tsx'
 import { DashboardSkeleton } from '../components/Skeleton.tsx'
 import StateChoropleth from '../components/StateChoropleth.tsx'
 import {
@@ -58,7 +56,7 @@ import type { DisasterRecord } from '../lib/types.ts'
 
 type Status = 'loading' | 'success' | 'error'
 
-const AXES_STYLE = { fontSize: 12, fill: '#41505f' } as const
+const AXES_STYLE = { fontSize: 12, fill: '#4b5563' } as const
 
 function yearOptions(): number[] {
   const years: number[] = []
@@ -121,6 +119,7 @@ export default function DashboardPage() {
   const controllerRef = useRef<AbortController | null>(null)
   const tokenRef = useRef(0)
   const failedQueryRef = useRef<DisasterQuery | null>(null)
+  const filterDetailsRef = useRef<HTMLDetailsElement | null>(null)
 
   const syncControls = useCallback((query: DisasterQuery) => {
     setStartYear(query.startYear)
@@ -321,141 +320,166 @@ export default function DashboardPage() {
     startYear, endYear, state: stateCode || null, incidentTypes: selectedTypes,
   })
 
-  const filtersPanel = (
-    <>
-      <section aria-label="Filters" className="dl-card">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 [&>*]:min-w-0">
-          <div>
-            <label htmlFor="filter-from-year" className="dl-field-label">
-              From year
-            </label>
-            <select
-              id="filter-from-year"
-              value={startYear}
-              onChange={(event) => setStartYear(Number(event.target.value))}
-              className="dl-select"
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="filter-to-year" className="dl-field-label">
-              To year
-            </label>
-            <select
-              id="filter-to-year"
-              value={endYear}
-              onChange={(event) => setEndYear(Number(event.target.value))}
-              className="dl-select"
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-wrap items-end gap-2 sm:col-span-2">
-            <button
-              type="button"
-              onClick={applyFilters}
-              aria-describedby={hasDraftChanges ? 'filters-changed-hint' : undefined}
-              className="dl-btn dl-btn-primary"
-            >
-              Apply filters
-            </button>
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="dl-btn dl-btn-secondary"
-            >
-              Reset
-            </button>
-            <button
-              type="button"
-              onClick={refreshData}
-              disabled={entry === null}
-              className="dl-btn dl-btn-secondary dl-btn-compact"
-            >
-              Refresh data
-            </button>
-            <button
-              type="button"
-              onClick={clearCachedData}
-              className="dl-btn dl-btn-secondary dl-btn-compact"
-            >
-              Clear cached data
-            </button>
-          </div>
-        </div>
-        <fieldset className="mt-4">
-          <legend className="dl-field-label">
-            Incident types {selectedTypes.length === 0 ? '(all)' : ''}
-          </legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {INCIDENT_TYPES.map((type) => {
-              const active = selectedTypes.includes(type)
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => toggleType(type)}
-                  className="dl-chip"
-                >
-                  {type}
-                </button>
-              )
-            })}
-          </div>
-        </fieldset>
-      </section>
+  // Keep the native <details> filter genuinely open on desktop and genuinely
+  // closed on mobile by syncing the open attribute with the viewport. Runs
+  // after hasData-dependent mount switches (fallback vs workspace) so the ref
+  // is attached to whichever details instance is rendered. CSS never
+  // force-displays a closed details body; the summary stays visible and
+  // keyboard-toggleable at every width.
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)')
+    const sync = () => {
+      if (filterDetailsRef.current) filterDetailsRef.current.open = media.matches
+    }
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [hasData])
 
+  // Single filter control instance (ids stay unique across layouts): the
+  // state selector applies immediately; year/type are drafts committed by
+  // Apply filters. The <details> wrapper is a native collapsible on every
+  // screen — open by default on desktop via the effect above, collapsed on
+  // mobile so the map stays first.
+  const stateSelector = (
+    <div>
+      <label htmlFor="filter-state" className="dl-field-label">
+        State
+      </label>
+      <select
+        id="filter-state"
+        value={stateCode}
+        onChange={(event) => selectStateScope(event.target.value)}
+        className="dl-select"
+      >
+        <option value="">All states</option>
+        {US_STATES.map((state) => (
+          <option key={state.code} value={state.code}>
+            {state.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+
+  const filterDetailsBody = (
+    <div className="dl-filter-body">
+      <div>
+        <label htmlFor="filter-from-year" className="dl-field-label">
+          From year
+        </label>
+        <select
+          id="filter-from-year"
+          value={startYear}
+          onChange={(event) => setStartYear(Number(event.target.value))}
+          className="dl-select"
+        >
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="filter-to-year" className="dl-field-label">
+          To year
+        </label>
+        <select
+          id="filter-to-year"
+          value={endYear}
+          onChange={(event) => setEndYear(Number(event.target.value))}
+          className="dl-select"
+        >
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </div>
+      <fieldset>
+        <legend className="dl-field-label">
+          Incident types {selectedTypes.length === 0 ? '(all)' : ''}
+        </legend>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {INCIDENT_TYPES.map((type) => {
+            const active = selectedTypes.includes(type)
+            return (
+              <button
+                key={type}
+                type="button"
+                aria-pressed={active}
+                onClick={() => toggleType(type)}
+                className="dl-chip"
+              >
+                {type}
+              </button>
+            )
+          })}
+        </div>
+      </fieldset>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={applyFilters}
+          aria-describedby={hasDraftChanges ? 'filters-changed-hint' : undefined}
+          className="dl-btn dl-btn-primary"
+        >
+          Apply filters
+        </button>
+        <button
+          type="button"
+          onClick={resetFilters}
+          className="dl-btn dl-btn-secondary"
+        >
+          Reset
+        </button>
+        <button
+          type="button"
+          onClick={refreshData}
+          disabled={entry === null}
+          className="dl-btn dl-btn-secondary dl-btn-compact"
+        >
+          Refresh data
+        </button>
+        <button
+          type="button"
+          onClick={clearCachedData}
+          className="dl-btn dl-btn-secondary dl-btn-compact"
+        >
+          Clear cached data
+        </button>
+      </div>
       {hasDraftChanges ? (
         <p id="filters-changed-hint" role="status" className="dl-meta">
           Filters have changed. Apply them to update the loaded view.
         </p>
       ) : null}
-    </>
+    </div>
+  )
+
+  const filtersPanel = (
+    <section aria-label="Filters" className="dl-filter-rail">
+      {stateSelector}
+      <details className="dl-filter-details" ref={filterDetailsRef}>
+        <summary className="dl-filter-summary">Year and incident type filters</summary>
+        {filterDetailsBody}
+      </details>
+    </section>
   )
 
   return (
-    <div className="dl-page">
+    <div className="dl-page dl-dashboard">
       <div>
-        <p className="dl-kicker">Geography-first atlas</p>
         <h1 className="dl-page-title">
           FEMA disaster declarations
         </h1>
         <p className="dl-page-lede">
-          County-level disaster declarations from {DATA_START_YEAR} to{' '}
-          {CURRENT_YEAR}, straight from the OpenFEMA API. Filter, explore, and
-          stay prepared.
+          County-level declaration records from {DATA_START_YEAR} to{' '}
+          {CURRENT_YEAR} via the OpenFEMA API (records are not unique
+          disasters).
         </p>
-      </div>
-
-      <div className="dl-card">
-        <div className="max-w-sm">
-          <label htmlFor="filter-state" className="dl-field-label">
-            State
-          </label>
-          <select
-            id="filter-state"
-            value={stateCode}
-            onChange={(event) => selectStateScope(event.target.value)}
-            className="dl-select"
-          >
-            <option value="">All states</option>
-            {US_STATES.map((state) => (
-              <option key={state.code} value={state.code}>
-                {state.name}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       {status === 'error' ? (
@@ -503,177 +527,189 @@ export default function DashboardPage() {
         </p>
       ) : null}
 
-      {!hasData ? filtersPanel : null}
+      {!hasData ? (
+        <div className="dl-card">{filtersPanel}</div>
+      ) : null}
 
       {hasData ? (
         <div className="dl-page">
-          <div className="dl-hero">
-            <div className="dl-hero-map">
-              <ChartCard
-                title="Declaration records map"
-                subtitle="County/area declaration records in the loaded snapshot (not unique disasters); select a state to filter or open the text table for values"
-              >
+          <div className="dl-workspace">
+            {filtersPanel}
+            <div className="dl-workspace-main">
+              <section aria-labelledby="map-title" className="dl-map-section">
+                <h2 id="map-title" className="dl-section-title">
+                  Declaration records map
+                </h2>
+                <p className="dl-meta">
+                  County/area declaration records in the loaded snapshot (not
+                  unique disasters); select a state to filter or open the text
+                  table for values
+                </p>
                 <StateChoropleth counts={allStateCounts} selectedState={appliedState} onSelectState={selectStateScope} />
-              </ChartCard>
-            </div>
-            <div className="dl-hero-aside">
-              {entry ? <DataScope entry={entry} /> : null}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>*]:min-w-0">
-                <KpiCard
-                  label="Declaration records"
-                  value={formatNumber(records.length)}
-                  hint="County-level declaration entries"
-                />
-                <KpiCard
-                  label="States affected"
-                  value={formatNumber(countStates(records))}
-                  hint="Distinct states and territories"
-                />
-                <KpiCard
-                  label="Most frequent incident"
-                  value={mostFrequentType(records) ?? '—'}
-                  hint="By record count in this view"
-                />
-                <KpiCard
-                  label="Busiest year"
-                  value={busiestYear(records)?.toString() ?? '—'}
-                  hint="Year with the most loaded records"
-                />
-              </div>
-            </div>
-          </div>
-
-          {filtersPanel}
-
-          <div className="dl-grid-secondary">
-            <ChartCard
-              title="Declaration records by state"
-              subtitle="Top 15 states and territories by county/area declaration records in the current view (not unique disasters)"
-            >
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stateData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="state" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#cbd5e1' }} interval={0} angle={-45} textAnchor="end" height={50} />
-                    <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
-                    <Tooltip cursor={{ fill: 'rgba(18, 58, 92, 0.08)' }} />
-                    <Bar dataKey="count" name="Declaration records" fill="#123a5c" radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              {stateData.length > 0 ? (
-                <p className="mt-3 text-sm text-slate-600">
-                  Highest: {stateData[0].state} with {formatNumber(stateData[0].count)}{' '}
-                  records in this view.
-                </p>
-              ) : null}
-            </ChartCard>
-
-            <ChartCard
-              title="Declaration records per year"
-              subtitle="County/area declaration records per year in the current view (not unique disasters)"
-            >
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={yearData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="year" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#cbd5e1' }} />
-                    <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="count" name="Declaration records" stroke="#b45309" strokeWidth={2} dot={{ r: 3, fill: '#d97706' }} activeDot={{ r: 5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <details className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
-                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
-                  Declaration records per year (text table, {yearData.length}{' '}
-                  {yearData.length === 1 ? 'year' : 'years'})
-                </summary>
-                <table className="mt-2 w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase">
-                      <th scope="col" className="py-1 pr-4 font-semibold">Year</th>
-                      <th scope="col" className="py-1 font-semibold">Declaration records</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {yearData.map((item) => (
-                      <tr key={item.year}>
-                        <td className="py-1 pr-4 text-slate-700">{item.year}</td>
-                        <td className="py-1 text-slate-700">{formatNumber(item.count)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </details>
-              {yearData.length > 0 ? (
-                <p className="mt-3 text-sm text-slate-600">
-                  Busiest year:{' '}
-                  {yearData.reduce((top, item) => (item.count > top.count ? item : top), yearData[0]).year}{' '}
-                  with{' '}
-                  {formatNumber(yearData.reduce((top, item) => (item.count > top.count ? item : top), yearData[0]).count)}{' '}
-                  records in this view.
-                </p>
-              ) : null}
-            </ChartCard>
-
-            <div className="min-w-0 lg:col-span-2">
-              <ChartCard
-                title="Share by incident type"
-                subtitle="Share of county/area declaration records by incident type in the current view (not unique disasters)"
-              >
-                <div className="flex flex-col items-center gap-4 sm:flex-row">
-                  <div className="h-64 w-full sm:w-1/2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          dataKey="count"
-                          nameKey="type"
-                          innerRadius="55%"
-                          outerRadius="85%"
-                          paddingAngle={1}
-                          strokeWidth={1}
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell
-                              key={`${entry.type}-${index}`}
-                              fill={CHART_COLORS[index % CHART_COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <ul className="w-full space-y-1.5 text-sm sm:w-1/2">
-                    {pieData.map((entry, index) => (
-                      <li
-                        key={`${entry.type}-${index}`}
-                        className="flex items-center gap-2"
-                      >
-                        <span
-                          aria-hidden="true"
-                          className="h-3 w-3 shrink-0 rounded-sm"
-                          style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                        />
-                        <span className="min-w-0 text-slate-700">{entry.type}</span>
-                        <span className="ml-auto shrink-0 text-slate-500">
-                          {formatNumber(entry.count)} · {formatShare(entry.share)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+              </section>
+              <dl className="dl-stat-band">
+                <div className="dl-stat">
+                  <dt>Declaration records</dt>
+                  <dd>{formatNumber(records.length)}</dd>
+                  <dd className="dl-stat-hint">County-level declaration entries</dd>
                 </div>
-                {pieData.length > 0 ? (
-                  <p className="mt-3 text-sm text-slate-600">
-                    Most common type: {pieData[0].type} with {formatNumber(pieData[0].count)}{' '}
-                    records ({formatShare(pieData[0].share)}) in this view.
-                  </p>
-                ) : null}
-              </ChartCard>
+                <div className="dl-stat">
+                  <dt>States affected</dt>
+                  <dd>{formatNumber(countStates(records))}</dd>
+                  <dd className="dl-stat-hint">Distinct states and territories</dd>
+                </div>
+                <div className="dl-stat">
+                  <dt>Most frequent incident</dt>
+                  <dd>{mostFrequentType(records) ?? '—'}</dd>
+                  <dd className="dl-stat-hint">By record count in this view</dd>
+                </div>
+                <div className="dl-stat">
+                  <dt>Busiest year</dt>
+                  <dd>{busiestYear(records)?.toString() ?? '—'}</dd>
+                  <dd className="dl-stat-hint">Year with the most loaded records</dd>
+                </div>
+              </dl>
+              {entry ? <DataScope entry={entry} /> : null}
             </div>
           </div>
+
+          <section aria-labelledby="state-chart-title" className="dl-section">
+            <h2 id="state-chart-title" className="dl-section-title">
+              Declaration records by state
+            </h2>
+            <p className="dl-meta">
+              Top 15 states and territories by county/area declaration records
+              in the current view (not unique disasters)
+            </p>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stateData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#d8dde3" vertical={false} />
+                  <XAxis dataKey="state" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#c3cad2' }} interval={0} angle={-45} textAnchor="end" height={50} />
+                  <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
+                  <Tooltip cursor={{ fill: 'rgba(32, 36, 43, 0.06)' }} />
+                  <Bar dataKey="count" name="Declaration records" fill="#20242b" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            {stateData.length > 0 ? (
+              <p className="mt-3 text-sm text-slate-600">
+                Highest: {stateData[0].state} with {formatNumber(stateData[0].count)}{' '}
+                records in this view.
+              </p>
+            ) : null}
+          </section>
+
+          <section aria-labelledby="year-chart-title" className="dl-section">
+            <h2 id="year-chart-title" className="dl-section-title">
+              Declaration records per year
+            </h2>
+            <p className="dl-meta">
+              County/area declaration records per year in the current view
+              (not unique disasters)
+            </p>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={yearData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#d8dde3" vertical={false} />
+                  <XAxis dataKey="year" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#c3cad2' }} />
+                  <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="count" name="Declaration records" stroke="#9a3412" strokeWidth={2} dot={{ r: 3, fill: '#c2410c' }} activeDot={{ r: 5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <details className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                Declaration records per year (text table, {yearData.length}{' '}
+                {yearData.length === 1 ? 'year' : 'years'})
+              </summary>
+              <table className="mt-2 w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase">
+                    <th scope="col" className="py-1 pr-4 font-semibold">Year</th>
+                    <th scope="col" className="py-1 font-semibold">Declaration records</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {yearData.map((item) => (
+                    <tr key={item.year}>
+                      <td className="py-1 pr-4 text-slate-700">{item.year}</td>
+                      <td className="py-1 text-slate-700">{formatNumber(item.count)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </details>
+            {yearData.length > 0 ? (
+              <p className="mt-3 text-sm text-slate-600">
+                Busiest year:{' '}
+                {yearData.reduce((top, item) => (item.count > top.count ? item : top), yearData[0]).year}{' '}
+                with{' '}
+                {formatNumber(yearData.reduce((top, item) => (item.count > top.count ? item : top), yearData[0]).count)}{' '}
+                records in this view.
+              </p>
+            ) : null}
+          </section>
+
+          <section aria-labelledby="type-chart-title" className="dl-section">
+            <h2 id="type-chart-title" className="dl-section-title">
+              Share by incident type
+            </h2>
+            <p className="dl-meta">
+              Share of county/area declaration records by incident type in the
+              current view (not unique disasters)
+            </p>
+            <div className="flex flex-col items-center gap-4 sm:flex-row">
+              <div className="h-64 w-full sm:w-1/2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      dataKey="count"
+                      nameKey="type"
+                      innerRadius="55%"
+                      outerRadius="85%"
+                      paddingAngle={1}
+                      strokeWidth={1}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell
+                          key={`${entry.type}-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatNumber(Number(value))} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="w-full space-y-1.5 text-sm sm:w-1/2">
+                {pieData.map((entry, index) => (
+                  <li
+                    key={`${entry.type}-${index}`}
+                    className="flex items-center gap-2"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-3 w-3 shrink-0 rounded-sm"
+                      style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                    />
+                    <span className="min-w-0 text-slate-700">{entry.type}</span>
+                    <span className="ml-auto shrink-0 text-slate-500">
+                      {formatNumber(entry.count)} · {formatShare(entry.share)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {pieData.length > 0 ? (
+              <p className="mt-3 text-sm text-slate-600">
+                Most common type: {pieData[0].type} with {formatNumber(pieData[0].count)}{' '}
+                records ({formatShare(pieData[0].share)}) in this view.
+              </p>
+            ) : null}
+          </section>
 
           <p className="text-sm text-slate-600">
             Showing {formatNumber(records.length)} declaration records for{' '}

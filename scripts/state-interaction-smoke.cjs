@@ -58,6 +58,23 @@ async function fixture(page, calls) {
         assert.ok(bounds && map && (bounds.y >= map.y + map.height - 1 || bounds.x >= map.x + map.width - 1 || bounds.x + bounds.width <= map.x + 1), 'keyboard information stays outside geography');
         await page.getByLabel('State', { exact: true }).focus();
         assert.equal(await info.isVisible(), false);
+      } else {
+        const advanced = page.locator('details.dl-filter-details');
+        assert.equal(await advanced.evaluate(el => el.open), false);
+        await advanced.locator('summary').focus();
+        await page.keyboard.press('Enter');
+        await page.getByLabel('From year', { exact: true }).selectOption('2020');
+        await page.getByRole('button', { name: 'Fire', exact: true }).tap();
+        await page.getByLabel('State', { exact: true }).selectOption('TX');
+        await scope.filter({ hasText: /\bTX\b|Texas/ }).waitFor();
+        assert.equal(await page.getByLabel('From year', { exact: true }).inputValue(), '2020');
+        await page.getByRole('button', { name: 'Apply filters', exact: true }).tap();
+        await scope.filter({ hasText: /2020/ }).waitFor();
+        await page.getByRole('button', { name: 'Reset', exact: true }).tap();
+        await scope.filter({ hasText: /All states/ }).waitFor();
+        await advanced.locator('summary').tap();
+        assert.equal(await advanced.evaluate(el => el.open), false);
+        assert.equal(await page.getByRole('tooltip').isVisible(), false);
       }
       assert.deepEqual(errors, []);
       await page.close();

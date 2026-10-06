@@ -60,7 +60,7 @@ const pressSkip = async (page, hash) => {
       await page.goto(base + hash, { waitUntil: 'networkidle' });
       if (hash === '#/') await page.getByLabel('Loaded data scope').waitFor();
       else if (hash === '#/disaster/4945') await page.locator('article').waitFor();
-      await page.getByRole('heading', { name: heading, exact: false }).first().waitFor();
+      await page.getByRole('heading', { name: heading, exact: false }).first().waitFor({ state: 'attached' });
       assert.equal(await page.title(), title, `title for ${hash}`);
       await pressSkip(page, hash);
       await page.close();
@@ -76,7 +76,7 @@ const pressSkip = async (page, hash) => {
         for (const [hash, heading] of routes) {
           const page = await newPage(browser, width);
           await page.goto(base + hash, { waitUntil: 'networkidle' });
-          await page.getByRole('heading', { name: heading, exact: false }).first().waitFor();
+          await page.getByRole('heading', { name: heading, exact: false }).first().waitFor({ state: 'attached' });
           if (hash === '#/') await page.getByLabel('Loaded data scope').waitFor();
           if (hash === '#/disasters') await page.locator('tbody tr').first().waitFor();
           await page.evaluate((z) => { document.documentElement.style.fontSize = `${z * 100}%`; }, zoom);
@@ -109,6 +109,12 @@ const pressSkip = async (page, hash) => {
       const page = await newPage(browser, 390);
       await page.goto(base + '#/', { waitUntil: 'networkidle' });
       await page.getByLabel('Loaded data scope').waitFor();
+      // The redesigned mobile workspace intentionally collapses advanced
+      // filters. Exercise the real disclosure before measuring its controls.
+      const advanced = page.locator('details.dl-filter-details');
+      if (await advanced.count() && !(await advanced.evaluate(el => el.open))) {
+        await advanced.locator('summary').click();
+      }
       const boxes = await page.evaluate(() => {
         const sel = [
           'nav[aria-label="Main navigation"] a',

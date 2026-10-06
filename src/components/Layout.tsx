@@ -50,101 +50,91 @@ export default function Layout() {
       <a
         href="#main-content"
         onClick={skipToMain}
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:max-w-[calc(100vw-1rem)] focus:rounded-md focus:bg-teal-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:break-words"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:max-w-[calc(100vw-1rem)] focus:rounded-md focus:bg-[#9a3412] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:break-words"
       >
         Skip to main content
       </a>
-      <header className="atlas-header">
-        <div className="atlas-shell flex flex-wrap items-center gap-x-4 gap-y-1 py-3">
-          <NavLink to="/" className="flex min-h-11 min-w-0 items-center gap-2">
-            <span
-              aria-hidden="true"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-700"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="h-5 w-5"
-                fill="none"
-                stroke="#fbbf24"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="7" />
-                <circle cx="12" cy="12" r="2" fill="#fbbf24" stroke="none" />
-              </svg>
-            </span>
-            <span className="min-w-0">
-              <span className="block break-words text-lg font-bold tracking-tight text-white">
+      <div className="atlas-layout">
+        <header className="atlas-header">
+          <div className="atlas-header-inner">
+            <NavLink to="/" className="atlas-brand">
+              <span aria-hidden="true" className="atlas-brand-mark">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 3 L21 20 L3 20 Z" />
+                  <circle cx="12" cy="15" r="2" fill="currentColor" stroke="none" />
+                </svg>
+              </span>
+              <span className="block [overflow-wrap:anywhere] text-lg font-bold tracking-tight text-white">
                 DisasterLens
               </span>
-              <span className="block text-[0.65rem] font-semibold tracking-[0.14em] text-teal-200 uppercase">
-                Public disaster data explorer
-              </span>
-            </span>
-          </NavLink>
-          <nav aria-label="Main navigation" className="ml-auto min-w-0">
-            <ul className="flex flex-wrap items-center gap-1">
-              <li>
-                <NavLink to="/" end className={navLinkClass}>
-                  Dashboard
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/disasters" className={navLinkClass}>
-                  Explore
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/preparedness" className={navLinkClass}>
-                  Preparedness
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/alerts" className={navLinkClass}>
-                  Alerts
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/about" className={navLinkClass}>
-                  About
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
+            </NavLink>
+            <nav aria-label="Main navigation" className="min-w-0">
+              <ul className="atlas-nav-list">
+                <li>
+                  <NavLink to="/" end className={navLinkClass}>
+                    Dashboard
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/disasters" className={navLinkClass}>
+                    Explore
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/preparedness" className={navLinkClass}>
+                    Preparedness
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/alerts" className={navLinkClass}>
+                    Alerts
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/about" className={navLinkClass}>
+                    About
+                  </NavLink>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </header>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main
+            id="main-content"
+            ref={mainRef}
+            tabIndex={-1}
+            className="atlas-shell flex-1 py-6 outline-none sm:py-8"
+          >
+            <Outlet />
+          </main>
+          <footer className="atlas-footer">
+            <div className="atlas-shell py-6">
+              <p>
+                Historical disaster declarations from the{' '}
+                <a
+                  className="dl-link"
+                  href="https://www.fema.gov/about/openfema"
+                >
+                  FEMA OpenFEMA API
+                </a>
+                ; current weather alerts on the Alerts page from the{' '}
+                <a
+                  className="dl-link"
+                  href="https://www.weather.gov/documentation/services-web-api"
+                >
+                  National Weather Service API
+                </a>
+                . DisasterLens is informational only — in an emergency, follow your
+                local officials.
+              </p>
+              <p className="mt-3" aria-label="Website build information">
+                Version {__APP_VERSION__} · Built {__BUILD_TIME__.replace('T', ' ').slice(0, 16)} UTC · {__COMMIT_SHA__}
+              </p>
+            </div>
+          </footer>
         </div>
-      </header>
-      <main
-        id="main-content"
-        ref={mainRef}
-        tabIndex={-1}
-        className="atlas-shell flex-1 py-6 outline-none sm:py-8"
-      >
-        <Outlet />
-      </main>
-      <footer className="atlas-footer">
-        <div className="atlas-shell py-6">
-          <p>
-            Historical disaster declarations from the{' '}
-            <a
-              className="dl-link"
-              href="https://www.fema.gov/about/openfema"
-            >
-              FEMA OpenFEMA API
-            </a>
-            ; current weather alerts on the Alerts page from the{' '}
-            <a
-              className="dl-link"
-              href="https://www.weather.gov/documentation/services-web-api"
-            >
-              National Weather Service API
-            </a>
-            . DisasterLens is informational only — in an emergency, follow your
-            local officials.
-          </p>
-          <p className="mt-3" aria-label="Website build information">
-            Version {__APP_VERSION__} · Built {__BUILD_TIME__.replace('T', ' ').slice(0, 16)} UTC · {__COMMIT_SHA__}
-          </p>
-        </div>
-      </footer>
+      </div>
     </div>
   )
 }

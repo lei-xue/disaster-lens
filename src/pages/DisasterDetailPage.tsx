@@ -159,50 +159,52 @@ export default function DisasterDetailPage() {
       ) : null}
       {current.error && current.result ? <ErrorBanner message={current.error} onRetry={() => { setForceRefresh((value) => value + 1); setAttempt((value) => value + 1) }} /> : null}
 
-      <article className="dl-card min-w-0 [overflow-wrap:anywhere]" aria-label="Declaration facts">
-        <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 [&>*]:min-w-0">
-          <div>
-            <dt className="dl-kicker">Disaster number</dt>
-            <dd className="mt-1 text-sm text-[var(--dl-ink)]">
-              #{primary.disasterNumber}
-            </dd>
+      <article className="min-w-0 [overflow-wrap:anywhere]" aria-label="Declaration facts">
+        <section className="dl-detail-facts">
+          <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 [&>*]:min-w-0">
+            <div>
+              <dt className="dl-kicker">Disaster number</dt>
+              <dd className="mt-1 text-sm text-[var(--dl-ink)]">
+                #{primary.disasterNumber}
+              </dd>
+            </div>
+            <div>
+              <dt className="dl-kicker">Declaration date</dt>
+              <dd className="mt-1 text-sm text-[var(--dl-ink)]">
+                {formatDate(primary.declarationDate)}
+              </dd>
+            </div>
+            <div>
+              <dt className="dl-kicker">State / Territory</dt>
+              <dd className="mt-1 text-sm text-[var(--dl-ink)]">{primary.state}</dd>
+            </div>
+            <div>
+              <dt className="dl-kicker">Incident type</dt>
+              <dd className="mt-1 text-sm text-[var(--dl-ink)]">{primary.incidentType}</dd>
+            </div>
+          </dl>
+        </section>
+        <section className="dl-section" aria-label="Designated areas">
+          <h2 className="dl-section-title">
+            Loaded designated area{areas.length > 1 ? `s (${areas.length})` : ''}
+          </h2>
+          <div className="mt-3 text-sm text-[var(--dl-ink)]">
+            {areas.length > 1 ? (
+              <ul className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
+                {areas.map((area) => (
+                  <li key={area}>{area}</li>
+                ))}
+              </ul>
+            ) : (
+              areas[0]
+            )}
           </div>
-          <div>
-            <dt className="dl-kicker">Declaration date</dt>
-            <dd className="mt-1 text-sm text-[var(--dl-ink)]">
-              {formatDate(primary.declarationDate)}
-            </dd>
-          </div>
-          <div>
-            <dt className="dl-kicker">State / Territory</dt>
-            <dd className="mt-1 text-sm text-[var(--dl-ink)]">{primary.state}</dd>
-          </div>
-          <div>
-            <dt className="dl-kicker">Incident type</dt>
-            <dd className="mt-1 text-sm text-[var(--dl-ink)]">{primary.incidentType}</dd>
-          </div>
-          <div className="sm:col-span-2 border-t border-[var(--dl-line)] pt-4">
-            <dt className="dl-kicker">
-              Loaded designated area{areas.length > 1 ? `s (${areas.length})` : ''}
-            </dt>
-            <dd className="mt-2 text-sm text-[var(--dl-ink)]">
-              {areas.length > 1 ? (
-                <ul className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
-                  {areas.map((area) => (
-                    <li key={area}>{area}</li>
-                  ))}
-                </ul>
-              ) : (
-                areas[0]
-              )}
-            </dd>
-          </div>
-        </dl>
-        <p className="dl-note mt-6 border-t border-[var(--dl-line)] pt-4">
+        </section>
+        <p className="dl-note mt-6">
           Queried directly from OpenFEMA for disaster #{number}, independently of dashboard filters.
           This is declaration information, not a real-time hazard alert.
         </p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[var(--dl-line)] pt-4">
           <button
             type="button"
             onClick={() => setForceRefresh((v) => v + 1)}

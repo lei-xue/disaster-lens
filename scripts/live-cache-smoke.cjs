@@ -18,6 +18,10 @@ const base = process.env.BASE_URL || 'http://127.0.0.1:8792/';
     const ready = async () => {
       await page.getByLabel('Loaded data scope', { exact: true }).waitFor();
       await page.getByText(/^Fetched .*fresh.*cached/).waitFor();
+      const advanced = page.locator('details.dl-filter-details');
+      if (await advanced.count() && !(await advanced.evaluate(el => el.open))) {
+        await advanced.locator('summary').click();
+      }
     };
     const nav = name => page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name, exact: true }).click();
     const idle = () => page.waitForFunction(() => ![...document.querySelectorAll('p[role="status"]')].some(e => e.textContent.includes('Updating data')));
@@ -55,7 +59,8 @@ const base = process.env.BASE_URL || 'http://127.0.0.1:8792/';
     await page.goto(base + '#/disaster/4945', { waitUntil: 'networkidle' }); await page.locator('article').waitFor();
     observe('Independent actual detail 4945', beforeDetail); assert.ok(calls.length > beforeDetail);
     const afterDetail = calls.length;
-    const areas = await page.locator('article dd li').allTextContents();
+    const areas = await page.getByRole('region', { name: 'Designated areas', exact: true }).locator('li').allTextContents();
+    assert.ok(areas.length > 0, 'actual designated area list was inspected');
     await page.reload({ waitUntil: 'networkidle' }); await page.locator('article').waitFor();
     observe('Independent detail full reload', afterDetail); assert.equal(calls.length, afterDetail);
     const beforeForce = calls.length;

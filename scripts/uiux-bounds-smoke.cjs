@@ -19,7 +19,7 @@ const routes = ['#/', '#/disasters', '#/disaster/400', '#/about', '#/preparednes
       }));
       for (const hash of routes) {
         await page.goto(base + hash, { waitUntil: 'networkidle' });
-        await page.locator('h1').waitFor();
+        await page.locator('h1').waitFor({ state: 'attached' });
         if (hash === '#/') await page.getByLabel('Loaded data scope').waitFor();
         if (hash === '#/disasters') await page.locator('tbody tr').first().waitFor();
         if (hash.startsWith('#/disaster/')) await page.locator('article').waitFor();
@@ -46,6 +46,26 @@ const routes = ['#/', '#/disasters', '#/disaster/400', '#/about', '#/preparednes
           assert.ok(rect.x >= -1 && rect.x + rect.width <= width + 1, JSON.stringify({ width, zoom, tooltip: rect }));
           await page.mouse.move(1, 1);
           assert.equal(await tooltip.isVisible(), false);
+          const advanced = page.locator('details.dl-filter-details');
+          if (await advanced.count()) {
+            assert.equal(await advanced.evaluate(el => el.open), width >= 1024, 'native disclosure matches the initial responsive layout');
+            // Inspect the expanded mobile panel too: hiding it must not hide
+            // an overflow defect or make its real controls unreachable.
+            if (width < 1024) {
+              await advanced.locator('summary').click();
+              await page.getByLabel('From year', { exact: true }).waitFor();
+              const expanded = await page.evaluate(() => ({
+                width: innerWidth, scroll: document.documentElement.scrollWidth,
+                outside: [...document.querySelectorAll('main button,main select,main summary')].filter(el => {
+                  const r = el.getBoundingClientRect(); return r.width && r.height && (r.x < -1 || r.right > innerWidth + 1);
+                }).map(el => el.textContent.trim().slice(0,40)),
+              }));
+              assert.ok(expanded.scroll <= width + 1, JSON.stringify({width,zoom,expanded}));
+              assert.deepEqual(expanded.outside, [], JSON.stringify({width,zoom,expanded}));
+              await advanced.locator('summary').click();
+              assert.equal(await advanced.evaluate(el => el.open), false);
+            }
+          }
         }
         results.push({ width, zoom, hash, criticalControlsFit: true });
       }

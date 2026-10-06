@@ -85,14 +85,9 @@ export default function PreparednessPage() {
   return (
     <div className="dl-page">
       <header>
-        <p className="dl-kicker">Editorial guide · before / during / after</p>
-        <h1 className="dl-page-title mt-1 [overflow-wrap:anywhere]">
+        <h1 className="dl-page-title [overflow-wrap:anywhere]">
           Preparedness guide
         </h1>
-        <p className="dl-page-lede">
-          Practical steps to take before, during, and after a disaster. A little
-          preparation makes a big difference.
-        </p>
       </header>
 
       <div
@@ -103,83 +98,100 @@ export default function PreparednessPage() {
         from your local emergency officials.
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="dl-guide">
         {SECTIONS.map((section, index) => (
-          <section key={section.title} className="dl-card h-fit">
-            <div className="flex items-baseline gap-2 border-b border-[var(--dl-line)] pb-2">
-              <span
-                aria-hidden="true"
-                className="text-xs font-bold tracking-[0.08em] text-[var(--dl-teal)]"
-              >
+          <section key={section.title} className="dl-guide-section">
+            <div className="dl-guide-heading">
+              <span aria-hidden="true" className="dl-guide-num">
                 {String(index + 1).padStart(2, '0')}
               </span>
-              <h2 className="text-base font-bold text-[var(--dl-navy-deep)]">
+              <h2 className="mt-1 text-base font-bold text-[var(--dl-navy-deep)]">
                 {section.title}
               </h2>
             </div>
-            <div className="divide-y divide-[var(--dl-line)]">
+            <ul className="dl-guide-list">
               {section.items.map((item) => (
-                <details key={item.summary} className="group py-2">
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-[var(--dl-ink)] marker:hidden hover:text-[var(--dl-teal)] [&::-webkit-details-marker]:hidden">
-                    <span
-                      aria-hidden="true"
-                      className="mr-1.5 inline-block text-[var(--dl-teal)] transition-transform motion-reduce:transition-none group-open:rotate-90"
-                    >
-                      ▸
-                    </span>
-                    {item.summary}
-                  </summary>
-                  <p className="mt-2 pl-5 text-sm leading-relaxed text-[var(--dl-ink-soft)] [overflow-wrap:anywhere]">
-                    {item.details}
-                  </p>
-                </details>
+                <li key={item.summary} className="dl-guide-item">
+                  <details className="group">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-[var(--dl-ink)] marker:hidden hover:text-[var(--dl-teal)] [&::-webkit-details-marker]:hidden">
+                      <span
+                        aria-hidden="true"
+                        className="mr-1.5 inline-block text-[var(--dl-teal)] transition-transform motion-reduce:transition-none group-open:rotate-90"
+                      >
+                        ▸
+                      </span>
+                      {item.summary}
+                    </summary>
+                    <p className="mt-2 pl-5 text-sm leading-relaxed text-[var(--dl-ink-soft)]">
+                      {item.details}
+                    </p>
+                  </details>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         ))}
       </div>
 
-      <section className="dl-card">
-        <h2 className="text-base font-bold text-[var(--dl-navy-deep)]">
+      <section aria-labelledby="prep-resources">
+        <h2
+          id="prep-resources"
+          className="text-base font-bold text-[var(--dl-navy-deep)]"
+        >
           Key resources
         </h2>
         <p className="mt-1 text-sm text-[var(--dl-ink-soft)]">
           Official starting points — grouped by what they help you do.
         </p>
-        <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2 [&>*]:min-w-0 [&_a]:[overflow-wrap:anywhere]">
-          <li className="rounded-md border border-[var(--dl-line)] bg-[var(--dl-paper)] px-3 py-2">
-            <a
-              className="font-semibold text-[var(--dl-navy)] underline decoration-[var(--dl-teal)] underline-offset-4 hover:text-[var(--dl-teal)]"
-              href="https://www.ready.gov/kit"
-            >
-              ready.gov/kit — build your emergency kit
-            </a>
-          </li>
-          <li className="rounded-md border border-[var(--dl-line)] bg-[var(--dl-paper)] px-3 py-2">
-            <a
-              className="font-semibold text-[var(--dl-navy)] underline decoration-[var(--dl-teal)] underline-offset-4 hover:text-[var(--dl-teal)]"
-              href="https://www.disasterassistance.gov"
-            >
-              disasterassistance.gov — apply for FEMA assistance
-            </a>
-          </li>
-          <li className="rounded-md border border-[var(--dl-line)] bg-[var(--dl-paper)] px-3 py-2">
-            <a
-              className="font-semibold text-[var(--dl-navy)] underline decoration-[var(--dl-teal)] underline-offset-4 hover:text-[var(--dl-teal)]"
-              href="https://www.211.org"
-            >
-              211.org — find local community resources
-            </a>
-          </li>
-          <li className="rounded-md border border-[var(--dl-line)] bg-[var(--dl-paper)] px-3 py-2">
-            <a
-              className="font-semibold text-[var(--dl-navy)] underline decoration-[var(--dl-teal)] underline-offset-4 hover:text-[var(--dl-teal)]"
-              href="https://www.weather.gov"
-            >
-              weather.gov — official National Weather Service forecasts
-            </a>
-          </li>
-        </ul>
+        <div className="dl-guide-resources mt-3">
+          <div className="dl-guide-resource-group">
+            <h3>Prepare</h3>
+            <ul>
+              <li>
+                <a
+                  className="dl-link text-sm"
+                  href="https://www.ready.gov/kit"
+                >
+                  ready.gov/kit — build your emergency kit
+                </a>
+              </li>
+              <li>
+                <a
+                  className="dl-link text-sm"
+                  href="https://www.weather.gov"
+                >
+                  weather.gov — official National Weather Service forecasts
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="dl-guide-resource-group">
+            <h3>Recover</h3>
+            <ul>
+              <li>
+                <a
+                  className="dl-link text-sm"
+                  href="https://www.disasterassistance.gov"
+                >
+                  disasterassistance.gov — apply for FEMA assistance
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="dl-guide-resource-group">
+            <h3>Find local help</h3>
+            <ul>
+              <li>
+                <a
+                  className="dl-link text-sm"
+                  href="https://www.211.org"
+                >
+                  211.org — find local community resources
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
       </section>
     </div>
   )
