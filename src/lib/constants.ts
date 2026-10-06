@@ -84,9 +84,12 @@ export const INCIDENT_TYPES: string[] = [
   'Severe Storm',
   'Snow',
   'Snowstorm',
+  'Straight-Line Winds',
   'Tornado',
+  'Tropical Storm',
   'Typhoon',
   'Volcanic Eruption',
+  'Winter Storm',
 ]
 
 export const CHART_COLORS = [

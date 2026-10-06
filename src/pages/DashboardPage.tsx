@@ -309,6 +309,12 @@ export default function DashboardPage() {
   }
 
   const years = yearOptions()
+  // Preserve exact source values, including types introduced by FEMA later.
+  const incidentTypes = [...new Set([
+    ...INCIDENT_TYPES,
+    ...(records ?? []).map((record) => record.incidentType),
+    ...selectedTypes,
+  ])].filter(Boolean).sort()
   const hasData = records !== null && records.length > 0
   const allStateCounts = hasData ? countByState(records) : []
   const stateData = allStateCounts.slice(0, 15)
@@ -402,8 +408,8 @@ export default function DashboardPage() {
         <legend className="dl-field-label">
           Incident types {selectedTypes.length === 0 ? '(all)' : ''}
         </legend>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {INCIDENT_TYPES.map((type) => {
+        <div className="mt-2 flex max-h-48 flex-wrap gap-2 overflow-y-auto" tabIndex={0} aria-label="Incident type options">
+          {incidentTypes.map((type) => {
             const active = selectedTypes.includes(type)
             return (
               <button
@@ -475,11 +481,7 @@ export default function DashboardPage() {
         <h1 className="dl-page-title">
           FEMA disaster declarations
         </h1>
-        <p className="dl-page-lede">
-          County-level declaration records from {DATA_START_YEAR} to{' '}
-          {CURRENT_YEAR} via the OpenFEMA API (records are not unique
-          disasters).
-        </p>
+
       </div>
 
       {status === 'error' ? (
@@ -541,9 +543,7 @@ export default function DashboardPage() {
                   Declaration records map
                 </h2>
                 <p className="dl-meta">
-                  County/area declaration records in the loaded snapshot (not
-                  unique disasters); select a state to filter or open the text
-                  table for values
+                  Select a state to filter.
                 </p>
                 <StateChoropleth counts={allStateCounts} selectedState={appliedState} onSelectState={selectStateScope} />
               </section>
@@ -578,8 +578,7 @@ export default function DashboardPage() {
               Declaration records by state
             </h2>
             <p className="dl-meta">
-              Top 15 states and territories by county/area declaration records
-              in the current view (not unique disasters)
+              Top 15 states and territories in the loaded view.
             </p>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -604,10 +603,7 @@ export default function DashboardPage() {
             <h2 id="year-chart-title" className="dl-section-title">
               Declaration records per year
             </h2>
-            <p className="dl-meta">
-              County/area declaration records per year in the current view
-              (not unique disasters)
-            </p>
+
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={yearData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -656,10 +652,7 @@ export default function DashboardPage() {
             <h2 id="type-chart-title" className="dl-section-title">
               Share by incident type
             </h2>
-            <p className="dl-meta">
-              Share of county/area declaration records by incident type in the
-              current view (not unique disasters)
-            </p>
+
             <div className="flex flex-col items-center gap-4 sm:flex-row">
               <div className="h-64 w-full sm:w-1/2">
                 <ResponsiveContainer width="100%" height="100%">
