@@ -1,8 +1,9 @@
 # DisasterLens workspace redesign — local draft (pending visual review)
 
-Status: LOCAL DRAFT ONLY. No commit, no push, no deployment or preview was
-performed. These notes describe a working local implementation for the user
-to review in their own dev environment.
+Status: historical implementation notes. The workspace has since been committed
+and pushed to `feat/disasterlens-map-first-uiux`, triggering Cloudflare branch
+previews. References below to local-only work describe the original review stage,
+not the current release state. See `production-readiness.md` for open gates.
 
 ## What changed structurally
 
