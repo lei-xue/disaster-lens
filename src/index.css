@@ -678,7 +678,7 @@
   .dl-bulletin-records {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 1rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -686,13 +686,11 @@
   }
   .dl-bulletin-record {
     min-width: 0;
-    border-top: 1px solid var(--dl-line);
+    border: 1px solid var(--dl-line);
     border-left: 4px solid var(--dl-line);
-    padding: 1rem 0 1rem 1rem;
-  }
-  .dl-bulletin-record:first-child {
-    border-top: none;
-    padding-top: 0.25rem;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    padding: 1rem;
   }
   .dl-bulletin-record--severe {
     border-left-color: #b91c1c;

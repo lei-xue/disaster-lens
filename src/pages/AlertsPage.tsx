@@ -58,7 +58,7 @@ function AlertCard({ record, nowMs }: { record: AlertRecord; nowMs: number }) {
     <li className={`dl-bulletin-record dl-bulletin-record--${tone}`}>
       <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <div className="min-w-0">
-          <h3 className="text-base font-bold leading-snug text-[var(--dl-navy-deep)]">
+          <h3 className="text-lg font-bold leading-snug text-[var(--dl-navy-deep)]">
             {record.event}
           </h3>
           {record.headline !== null ? (
