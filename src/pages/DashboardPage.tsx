@@ -593,7 +593,7 @@ export default function DashboardPage() {
                   <XAxis dataKey="state" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#c3cad2' }} interval={0} angle={-45} textAnchor="end" height={50} />
                   <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
                   <Tooltip cursor={{ fill: 'rgba(32, 36, 43, 0.06)' }} />
-                  <Bar dataKey="count" name="Declaration records" fill="#20242b" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="count" name="Declaration records" fill="#c2410c" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

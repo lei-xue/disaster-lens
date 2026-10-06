@@ -9,6 +9,14 @@
       content="Explore FEMA disaster declaration records and current National Weather Service alerts. Historical declaration information and weather-alert snapshots, not a guaranteed real-time warning service."
     />
     <title>DisasterLens — FEMA Disaster Data &amp; NWS Alerts Dashboard</title>
+    <style>
+      .dl-boot { min-height: 100vh; min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 16px; margin: 0; padding: 24px; box-sizing: border-box; background: #f3f4f6; color: #20242b; font: 16px/1.5 system-ui, sans-serif; text-align: center; }
+      .dl-boot svg { width: 48px; height: 48px; color: #9a3412; }
+      .dl-boot strong { font-size: 24px; letter-spacing: -0.5px; }
+      .dl-boot p { margin: 0; }
+      .dl-boot a { color: #9a3412; text-underline-offset: 3px; }
+      body { margin: 0; }
+    </style>
     <link rel="canonical" href="https://disasterlens.leixue.dev/" />
     <meta property="og:url" content="https://disasterlens.leixue.dev/" />
     <meta property="og:type" content="website" />
@@ -21,7 +29,18 @@
     <meta name="twitter:description" content="Explore OpenFEMA declaration data and current NWS weather alerts by state. Record counts are not unique disaster counts; alert snapshots are not a guaranteed real-time warning service." />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="dl-boot" role="status" aria-live="polite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 3 L21 20 L3 20 Z" />
+          <circle cx="12" cy="15" r="2" fill="currentColor" stroke="none" />
+        </svg>
+        <strong>DisasterLens</strong>
+        <p>Loading dashboard…</p>
+        <noscript><p>JavaScript is required to browse the data.</p></noscript>
+        <a href="">Reload</a>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -11,9 +11,13 @@ const AboutPage = lazy(() => import('./pages/AboutPage.tsx'))
 
 function RoutePending() {
   return (
-    <p role="status" className="p-4 text-sm text-gray-600">
-      Loading page…
-    </p>
+    <div role="status" className="flex min-h-48 flex-col items-center justify-center gap-3 text-sm text-gray-600">
+      <svg viewBox="0 0 24 24" className="h-10 w-10 text-[#9a3412]" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path d="M12 3 L21 20 L3 20 Z" />
+        <circle cx="12" cy="15" r="2" fill="currentColor" stroke="none" />
+      </svg>
+      <p>Loading page…</p>
+    </div>
   )
 }
 

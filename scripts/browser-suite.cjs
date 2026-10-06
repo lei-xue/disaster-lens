@@ -2,7 +2,7 @@
 const { spawn } = require('node:child_process');
 const net = require('node:net');
 const path = require('node:path');
-const suites = ['uiux-smoke.cjs', 'state-interaction-smoke.cjs', 'map-chunk-smoke.cjs', 'page-recovery-smoke.cjs', 'nws-smoke.cjs', 'motion-smoke.cjs', 'uiux-bounds-smoke.cjs'];
+const suites = ['uiux-smoke.cjs', 'state-interaction-smoke.cjs', 'map-chunk-smoke.cjs', 'page-recovery-smoke.cjs', 'nws-smoke.cjs', 'motion-smoke.cjs', 'startup-smoke.cjs', 'uiux-bounds-smoke.cjs'];
 function run(script, env) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [path.join(__dirname, script)], { env, stdio: 'inherit' });
