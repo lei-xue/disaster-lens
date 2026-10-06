@@ -1,14 +1,14 @@
 // UI/UX smoke against the BUILT app with synthetic intercepted OpenFEMA records.
 // Usage: PLAYWRIGHT_MODULE=/abs/path/playwright BASE_URL=http://127.0.0.1:8792/ node scripts/uiux-smoke.cjs
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { browserType } = require('./browser-engine.cjs');
 const base = process.env.BASE_URL || 'http://127.0.0.1:8792/';
 
 // Synthetic fixture: 2 states, 2 years, 2 incident types; detail disaster 4945.
 const rec = (n, st, yr, type, area) => ({
   disasterNumber: n, state: st,
   declarationTitle: `SYNTHETIC ${type} ${n}`,
-  incidentType: type, declarationDate: `${yr}-06-15T00:00:00.000z`,
+  incidentType: type, declarationDate: `${yr}-06-15T00:00:00.000Z`,
   designatedArea: area, declarationType: 'DR',
 });
 const listPayload = { DisasterDeclarationsSummaries: [
@@ -44,7 +44,7 @@ const pressSkip = async (page, hash) => {
 };
 
 (async () => {
-  const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+  const browser = await browserType.launch({ headless: true });
   try {
     // 1. Skip link + route titles on all 6 hash routes (fresh page per route).
     const routes = [
@@ -160,6 +160,7 @@ const pressSkip = async (page, hash) => {
       await dash.goto(base + '#/', { waitUntil: 'networkidle' });
       await dash.getByLabel('Loaded data scope').waitFor();
       const map = dash.locator('[role="group"][aria-label*="Map of declaration record counts"]');
+      await map.waitFor();
       assert.equal(await map.count(), 1, 'interactive map exposes a named group, not an image hiding controls');
       assert.equal(await map.getByRole('button').count(), 51, 'all 50 state paths plus DC expose interactive controls');
       assert.equal(await map.locator('[data-state="CA"]').getAttribute('role'), 'button');

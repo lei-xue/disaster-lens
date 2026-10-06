@@ -1,11 +1,11 @@
 // Synthetic data, actual built UI. Detect clipped controls as well as page overflow.
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { browserType } = require('./browser-engine.cjs');
 const base = process.env.BASE_URL;
 assert.ok(base, 'Set BASE_URL explicitly');
 const routes = ['#/', '#/disasters', '#/disaster/400', '#/about', '#/preparedness', '#/alerts'];
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await browserType.launch();
   const results = [];
   try {
     for (const width of [320, 390, 1440]) for (const zoom of [100, 200]) {

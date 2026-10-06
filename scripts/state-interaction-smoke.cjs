@@ -1,6 +1,6 @@
 // Synthetic interaction regressions. No fixtures are injected into application code.
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { browserType, browserName } = require('./browser-engine.cjs');
 const base = process.env.BASE_URL;
 assert.ok(base, 'Set BASE_URL explicitly to the intended built artifact');
 
@@ -21,10 +21,10 @@ async function fixture(page, calls) {
 }
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await browserType.launch();
   try {
     for (const touch of [false, true]) {
-      const page = await browser.newPage({ viewport: { width: touch ? 390 : 1440, height: 1000 }, isMobile: touch, hasTouch: touch });
+      const page = await browser.newPage({ viewport: { width: touch ? 390 : 1440, height: 1000 }, ...(browserName === 'firefox' ? {} : { isMobile: touch }), hasTouch: touch });
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
       await fixture(page, []);

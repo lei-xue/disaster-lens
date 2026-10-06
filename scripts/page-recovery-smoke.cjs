@@ -1,9 +1,9 @@
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { browserType } = require('./browser-engine.cjs');
 const base = process.env.BASE_URL;
 assert.ok(base, 'Set BASE_URL to the built artifact');
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await browserType.launch();
   try {
     for (const width of [320, 1440]) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
@@ -22,7 +22,7 @@ assert.ok(base, 'Set BASE_URL to the built artifact');
       await page.getByRole('link', { name: 'About', exact: true }).click();
       await page.getByRole('heading', { name: 'Page unavailable' }).waitFor();
       await page.unroute('**/AboutPage-*.js');
-      await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle' }), page.getByRole('button', { name: 'Reload page' }).click()]);
+      await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), page.getByRole('button', { name: 'Reload page' }).click()]);
       await page.getByRole('heading', { name: 'About DisasterLens' }).waitFor();
       assert.equal(await page.getByRole('alert').count(), 0);
       await page.close();

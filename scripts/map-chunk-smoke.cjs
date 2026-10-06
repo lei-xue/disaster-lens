@@ -1,9 +1,9 @@
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { browserType } = require('./browser-engine.cjs');
 const base = process.env.BASE_URL;
 assert.ok(base, 'Set BASE_URL to the production build');
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await browserType.launch();
   try {
     const page = await browser.newPage();
     const scripts = [];

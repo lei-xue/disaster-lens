@@ -1,6 +1,6 @@
 // Synthetic NWS browser regression. Never interpret these fixtures as live alerts.
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { browserType } = require('./browser-engine.cjs');
 const base = process.env.BASE_URL || 'http://127.0.0.1:8792/';
 const collection = (area) => ({ type: 'FeatureCollection', features: [{
   type: 'Feature', geometry: null, id: `https://api.weather.gov/alerts/urn:oid:synthetic.${area}`,
@@ -13,7 +13,7 @@ const collection = (area) => ({ type: 'FeatureCollection', features: [{
   },
 }] });
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await browserType.launch();
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 900 }, reducedMotion: 'reduce' });
     await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });

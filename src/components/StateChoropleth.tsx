@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import type { KeyboardEvent, MouseEvent } from 'react'
+import type { KeyboardEvent, PointerEvent } from 'react'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import type { GeoJsonObject } from 'geojson'
 import topoRaw from 'us-atlas/states-10m.json?raw'
@@ -71,7 +71,10 @@ export default function StateChoropleth({
   }, [])
 
   const trackPointer =
-    (postal: string) => (event: MouseEvent<SVGPathElement>) => {
+    (postal: string) => (event: PointerEvent<SVGPathElement>) => {
+      // Touch can synthesize mousemove after pointerup and recreate a tooltip.
+      // Only a genuine mouse pointer may show hover information.
+      if (event.pointerType !== 'mouse') return
       const svg = event.currentTarget.ownerSVGElement
       if (!svg) return
       const bounds = svg.getBoundingClientRect()
@@ -144,7 +147,7 @@ export default function StateChoropleth({
                           ? 'state-map-focus-info'
                           : undefined
                     }
-                    onMouseMove={trackPointer(postal)}
+                    onPointerMove={trackPointer(postal)}
                     onMouseLeave={clearTip}
                     onPointerDown={clearTip}
                     onPointerUp={clearTip}

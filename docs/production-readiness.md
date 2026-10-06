@@ -34,7 +34,8 @@ It is not proof of live FEMA/NWS availability or real-device acceptance.
 - [ ] Verify live source behavior and the exact deployment's footer SHA after publication.
 - [ ] Set up operational uptime/exception alerting with an authorized provider and privacy review.
 - [ ] Exercise a rollback on the actual hosting pipeline with user authorization.
-- [ ] Test Firefox, WebKit, physical phones and manual screen-reader navigation.
+- [x] Run production-browser regression suites in Chromium, Firefox and WebKit, with all three engines in CI.
+- [ ] Test physical phones and manual screen-reader navigation. Engine emulation is not physical-device or actual Safari certification.
 - [ ] Measure cold-load performance on a constrained connection, not only output chunk sizes.
 - [ ] Confirm GitHub verification succeeds remotely; configure required checks only with authorization.
 
