@@ -1,5 +1,6 @@
 import { useEffect, useRef, type MouseEvent } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import PageBoundary from './PageBoundary.tsx'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `atlas-nav-link ${isActive ? 'atlas-nav-link--active' : ''}`
@@ -106,7 +107,9 @@ export default function Layout() {
             tabIndex={-1}
             className="atlas-shell flex-1 py-6 outline-none sm:py-8"
           >
-            <Outlet />
+            <PageBoundary key={location.pathname}>
+              <Outlet />
+            </PageBoundary>
           </main>
           <footer className="atlas-footer">
             <div className="atlas-shell py-6">
