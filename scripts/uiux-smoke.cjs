@@ -152,7 +152,7 @@ const pressSkip = async (page, hash) => {
       assert.equal(await page.evaluate(() => document.activeElement.textContent.trim().startsWith('Title')), true);
       await page.keyboard.press('Enter'); // keyboard-activate sort
       await page.waitForFunction(() => document.querySelector('th[aria-sort="ascending"] button')?.textContent.trim().startsWith('Title'));
-      assert.deepEqual(await page.locator('tbody tr td:first-child').allTextContents(),
+      assert.deepEqual(await page.locator('tbody tr td:first-child a').allTextContents(),
         ['SYNTHETIC Fire 101', 'SYNTHETIC Fire 102', 'SYNTHETIC Hurricane 103', 'SYNTHETIC Hurricane 104']);
       await page.close();
 

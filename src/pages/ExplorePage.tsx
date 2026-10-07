@@ -23,11 +23,12 @@ import { paginate, searchRecords, sortRecords, type SortKey } from '../lib/table
 
 const PAGE_SIZE = 25
 
-const COLUMNS: Array<{ key: SortKey; label: string }> = [
+// State, area and type move under the title below the sm breakpoint.
+const COLUMNS: Array<{ key: SortKey; label: string; wideOnly?: boolean }> = [
   { key: 'declarationTitle', label: 'Title' },
-  { key: 'state', label: 'State' },
-  { key: 'designatedArea', label: 'County / Area' },
-  { key: 'incidentType', label: 'Type' },
+  { key: 'state', label: 'State', wideOnly: true },
+  { key: 'designatedArea', label: 'County / Area', wideOnly: true },
+  { key: 'incidentType', label: 'Type', wideOnly: true },
   { key: 'declarationDate', label: 'Declared' },
 ]
 
@@ -214,7 +215,7 @@ export default function ExplorePage() {
             role="region"
             aria-label="Declaration records table, scroll horizontally to see all columns"
           >
-            <table className="w-full min-w-3xl text-left text-sm">
+            <table className="w-full text-left text-sm sm:min-w-3xl">
               <caption className="sr-only">
                 Declaration records matching the current search. Column headers sort the table. Open a title link for declaration details.
               </caption>
@@ -231,7 +232,7 @@ export default function ExplorePage() {
                             : 'descending'
                           : 'none'
                       }
-                      className="px-4 py-3 font-semibold text-[var(--dl-ink-soft)]"
+                      className={`${column.wideOnly ? 'hidden sm:table-cell' : ''} px-4 py-3 font-semibold whitespace-nowrap text-[var(--dl-ink-soft)]`}
                     >
                       <button
                         type="button"
@@ -271,12 +272,15 @@ export default function ExplorePage() {
                         >
                           {record.declarationTitle}
                         </Link>
+                        <p className="mt-1 text-xs text-[var(--dl-ink-soft)] sm:hidden">
+                          {record.state} · {record.designatedArea} · {record.incidentType}
+                        </p>
                       </td>
-                      <td className="px-4 py-3 text-[var(--dl-ink)]">{record.state}</td>
-                      <td className="px-4 py-3 text-[var(--dl-ink)]">
+                      <td className="hidden px-4 py-3 text-[var(--dl-ink)] sm:table-cell">{record.state}</td>
+                      <td className="hidden px-4 py-3 text-[var(--dl-ink)] sm:table-cell">
                         {record.designatedArea}
                       </td>
-                      <td className="px-4 py-3 text-[var(--dl-ink)]">
+                      <td className="hidden px-4 py-3 text-[var(--dl-ink)] sm:table-cell">
                         {record.incidentType}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-[var(--dl-ink-soft)]">
