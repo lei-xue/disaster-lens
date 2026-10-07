@@ -617,7 +617,7 @@ export default function DashboardPage() {
                   <XAxis dataKey="year" tick={AXES_STYLE} tickLine={false} axisLine={{ stroke: '#c3cad2' }} />
                   <YAxis tick={AXES_STYLE} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="count" name="Declaration records" stroke="#9a3412" strokeWidth={2} dot={{ r: 3, fill: '#c2410c' }} activeDot={{ r: 5 }} />
+                  <Line type="linear" dataKey="count" name="Declaration records" stroke="#9a3412" strokeWidth={2} dot={{ r: 3, fill: '#c2410c' }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
