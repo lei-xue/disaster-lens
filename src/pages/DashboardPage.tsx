@@ -695,7 +695,7 @@ export default function DashboardPage() {
                       style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                     />
                     <span className="min-w-0 text-slate-700">{entry.type}</span>
-                    <span className="ml-auto shrink-0 text-slate-500">
+                    <span className="ml-auto shrink-0 text-slate-600">
                       {formatNumber(entry.count)} · {formatShare(entry.share)}
                     </span>
                   </li>
