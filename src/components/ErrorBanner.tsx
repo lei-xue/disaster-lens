@@ -13,7 +13,7 @@ export default function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
       <button
         type="button"
         onClick={onRetry}
-        className="self-start rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 sm:self-auto"
+        className="self-start rounded-md bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700 sm:self-auto"
       >
         Retry
       </button>

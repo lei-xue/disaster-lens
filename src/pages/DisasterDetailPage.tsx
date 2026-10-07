@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import EmptyState from '../components/EmptyState.tsx'
 import ErrorBanner from '../components/ErrorBanner.tsx'
@@ -81,24 +81,34 @@ export default function DisasterDetailPage() {
     }
   }, [number, attempt, forceRefresh])
 
-  if (number === null) return <EmptyState title="Invalid disaster number" hint="Use a positive whole-number FEMA disaster ID." />
+  const frame = (children: ReactNode) => (
+    <div className="dl-page">
+      <header>
+        <Link to="/disasters" className="dl-link text-sm font-medium">← Back to loaded declarations</Link>
+        <h1 className="dl-page-title mt-4">{number === null ? 'Declaration details' : `Disaster #${number}`}</h1>
+      </header>
+      {children}
+    </div>
+  )
+
+  if (number === null) return frame(<EmptyState title="Invalid disaster number" hint="Use a positive whole-number FEMA disaster ID." />)
   const current = loaded?.number === number && loaded.attempt === attempt ? loaded : null
   if (current === null) {
-    return (
+    return frame(
       <div role="status" aria-label="Loading disaster details">
         <DetailSkeleton />
         <p className="sr-only">Loading disaster details from FEMA…</p>
       </div>
     )
   }
-  if (current.error && !current.result) return <ErrorBanner message={current.error} onRetry={() => { setForceRefresh((value) => value + 1); setAttempt((value) => value + 1) }} />
+  if (current.error && !current.result) return frame(<ErrorBanner message={current.error} onRetry={() => { setForceRefresh((value) => value + 1); setAttempt((value) => value + 1) }} />)
   const result = current.result!
   const matches = result.records
   const primary = matches[0] ?? null
   const areas = [...new Set(matches.map((record) => record.designatedArea))]
 
   if (primary === null) {
-    return (
+    return frame(
       <EmptyState
         title={`No declaration found for disaster #${disasterNumber}`}
         hint="FEMA returned no records for this number. Try another declaration."
@@ -116,7 +126,7 @@ export default function DisasterDetailPage() {
         >
           Back to explore
         </Link>
-      </EmptyState>
+      </EmptyState>,
     )
   }
 
