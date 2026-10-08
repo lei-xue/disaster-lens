@@ -2,6 +2,10 @@ import { useEffect, useRef, type MouseEvent } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import PageBoundary from './PageBoundary.tsx'
 
+const START_YEAR = 2026
+const currentYear = new Date().getFullYear()
+const copyrightYears = currentYear > START_YEAR ? `${START_YEAR}–${currentYear}` : `${START_YEAR}`
+
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `atlas-nav-link ${isActive ? 'atlas-nav-link--active' : ''}`
 
@@ -132,7 +136,7 @@ export default function Layout() {
                 local officials.
               </p>
               <p className="mt-3" aria-label="Website build information">
-                Version {__APP_VERSION__} · Built {__BUILD_TIME__.replace('T', ' ').slice(0, 16)} UTC · {__COMMIT_SHA__}
+                © {copyrightYears} DisasterLens · Version {__APP_VERSION__} · {__COMMIT_SHA__}
               </p>
             </div>
           </footer>

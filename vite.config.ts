@@ -14,7 +14,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
     __APP_VERSION__: JSON.stringify(version),
-    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     __COMMIT_SHA__: JSON.stringify(commit.slice(0, 7)),
   },
 })
