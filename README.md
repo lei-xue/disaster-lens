@@ -26,4 +26,4 @@ npm test        # tests
 npm run build   # production build
 ```
 
-More detail: [docs/details.md](docs/details.md)
+More detail (data sources, hosting): [docs/details.md](docs/details.md)

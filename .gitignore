@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Screenshots written by scripts/live-smoke.cjs
+docs/screenshots/
